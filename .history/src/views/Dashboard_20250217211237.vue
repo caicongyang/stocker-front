@@ -154,20 +154,16 @@ export default {
 
     async fetchETFRanking() {
       try {
-        const response = await axios.get('/api/t-etf/getTopGainEtfs')
+        const response = await axios.get('/api/etf/top-gain')
         console.log('ETF Ranking Response:', response)
         
         if (response.data.code === 0) {
           this.etfRanking = response.data.data.map(item => ({
-            code: item.stockCode,
-            name: item.stockName,
-            price: Number(item.close),
-            changePercent: Number(item.pctChg),
-            volume: Number(item.volume),
-            high: Number(item.high),
-            low: Number(item.low),
-            amount: Number(item.amount),
-            tradeDate: item.tradeDate
+            code: item.code,
+            name: item.name,
+            price: Number(item.price),
+            changePercent: Number(item.changePercent),
+            volume: Number(item.volume)
           }))
         } else {
           console.error('获取ETF排名数据失败:', {

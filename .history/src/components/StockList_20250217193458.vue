@@ -20,9 +20,6 @@
                 <span>{{ stock.name }}</span>
                 <span class="stock-symbol">{{ stock.symbol }}</span>
               </div>
-              <div class="concept-name" v-if="stock.conceptName">
-                {{ stock.conceptName }}
-              </div>
             </td>
             <td>¥{{ stock.price }}</td>
             <td :class="{ 'up': stock.change > 0, 'down': stock.change < 0 }">
@@ -96,10 +93,4 @@ th {
 
 .up { color: #f56c6c; }
 .down { color: #67c23a; }
-
-.concept-name {
-  font-size: 12px;
-  color: #666;
-  margin-top: 4px;
-}
 </style>

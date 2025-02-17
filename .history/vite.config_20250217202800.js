@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite'
-import vue2 from '@vitejs/plugin-vue2'
+import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  plugins: [vue2()],
+  plugins: [vue()],
   server: {
     proxy: {
       '/api': {

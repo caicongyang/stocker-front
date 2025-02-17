@@ -18,10 +18,11 @@
           class="volume-stocks"
         />
         
-        <LimitUpConceptList
+        <StockList
           title="涨停概念异动 TOP20"
-          :concepts="limitUpStocks"
+          :stocks="limitUpStocks"
           class="limit-up-stocks"
+          @click-item="goToDetail"
         />
         
         <StockList
@@ -31,10 +32,12 @@
           @click-item="goToDetail"
         />
         
-        <ETFRankingList
+        <StockList
           title="ETF涨幅排名 TOP20"
-          :etfs="etfRanking"
+          :stocks="etfRanking"
+          :showVolume="false"
           class="etf-ranking"
+          @click-item="goToDetail"
         />
       </div>
     </div>
@@ -45,8 +48,6 @@
 import MarketHeat from '../components/MarketHeat.vue'
 import StockList from '../components/StockList.vue'
 import ConceptVolumeList from '../components/ConceptVolumeList.vue'
-import LimitUpConceptList from '../components/LimitUpConceptList.vue'
-import ETFRankingList from '../components/ETFRankingList.vue'
 import SideMenu from '../components/SideMenu.vue'
 import axios from 'axios'
 
@@ -56,8 +57,6 @@ export default {
     MarketHeat,
     StockList,
     ConceptVolumeList,
-    LimitUpConceptList,
-    ETFRankingList,
     SideMenu
   },
   data() {
@@ -72,7 +71,15 @@ export default {
         }
       ],
       volumeStocks: [],
-      limitUpStocks: [],
+      limitUpStocks: [
+        {
+          symbol: '000001',
+          name: '平安银行',
+          price: 18.22,
+          change: 9.98,
+          volume: '1234.5万'
+        }
+      ],
       abnormalETFs: [
         {
           symbol: '159915',
@@ -82,7 +89,14 @@ export default {
           volume: '12.3亿'
         }
       ],
-      etfRanking: []
+      etfRanking: [
+        {
+          symbol: '512480',
+          name: '半导体ETF',
+          price: 1.625,
+          change: 2.56
+        }
+      ]
     }
   },
   methods: {
@@ -101,8 +115,8 @@ export default {
         if (response.data.code === 0) {
           this.volumeStocks = response.data.data.map(item => ({
             conceptName: item.conceptName,
-            avgIncrease: Number(item.avgIncrease),
-            maxIncrease: Number(item.maxIncrease),
+            avgIncrease: Number(item.avgIncrease).toFixed(2),
+            maxIncrease: Number(item.maxIncrease).toFixed(2),
             stockCount: item.stockCount,
             tradeDate: new Date(item.tradeDate).toLocaleDateString()
           }))
@@ -120,76 +134,11 @@ export default {
           status: error.response?.status
         })
       }
-    },
-    
-    async fetchLimitUpConcepts() {
-      try {
-        const response = await axios.get('/api/limit-up-concept-stats/list')
-        console.log('Limit Up Concepts Response:', response)
-        
-        if (response.data.code === 0) {
-          this.limitUpStocks = response.data.data.map(item => ({
-            conceptName: item.conceptName,
-            avgIncrease: Number(item.avgIncrease),
-            maxIncrease: Number(item.maxIncrease),
-            stockCount: item.stockCount,
-            tradeDate: new Date(item.tradeDate).toLocaleDateString(),
-            totalVolume: item.totalVolume
-          }))
-        } else {
-          console.error('获取涨停概念数据失败:', {
-            code: response.data.code,
-            msg: response.data.message,
-            fullResponse: response.data
-          })
-        }
-      } catch (error) {
-        console.error('获取涨停概念数据失败:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        })
-      }
-    },
-
-    async fetchETFRanking() {
-      try {
-        const response = await axios.get('/api/t-etf/getTopGainEtfs')
-        console.log('ETF Ranking Response:', response)
-        
-        if (response.data.code === 0) {
-          this.etfRanking = response.data.data.map(item => ({
-            code: item.stockCode,
-            name: item.stockName,
-            price: Number(item.close),
-            changePercent: Number(item.pctChg),
-            volume: Number(item.volume),
-            high: Number(item.high),
-            low: Number(item.low),
-            amount: Number(item.amount),
-            tradeDate: item.tradeDate
-          }))
-        } else {
-          console.error('获取ETF排名数据失败:', {
-            code: response.data.code,
-            msg: response.data.message,
-            fullResponse: response.data
-          })
-        }
-      } catch (error) {
-        console.error('获取ETF排名数据失败:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        })
-      }
     }
   },
   
   created() {
     this.fetchVolumeStocks()
-    this.fetchLimitUpConcepts()
-    this.fetchETFRanking()
   }
 }
 </script>

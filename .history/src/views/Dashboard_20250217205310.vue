@@ -31,10 +31,12 @@
           @click-item="goToDetail"
         />
         
-        <ETFRankingList
+        <StockList
           title="ETF涨幅排名 TOP20"
-          :etfs="etfRanking"
+          :stocks="etfRanking"
+          :showVolume="false"
           class="etf-ranking"
+          @click-item="goToDetail"
         />
       </div>
     </div>
@@ -46,7 +48,6 @@ import MarketHeat from '../components/MarketHeat.vue'
 import StockList from '../components/StockList.vue'
 import ConceptVolumeList from '../components/ConceptVolumeList.vue'
 import LimitUpConceptList from '../components/LimitUpConceptList.vue'
-import ETFRankingList from '../components/ETFRankingList.vue'
 import SideMenu from '../components/SideMenu.vue'
 import axios from 'axios'
 
@@ -57,7 +58,6 @@ export default {
     StockList,
     ConceptVolumeList,
     LimitUpConceptList,
-    ETFRankingList,
     SideMenu
   },
   data() {
@@ -82,7 +82,14 @@ export default {
           volume: '12.3亿'
         }
       ],
-      etfRanking: []
+      etfRanking: [
+        {
+          symbol: '512480',
+          name: '半导体ETF',
+          price: 1.625,
+          change: 2.56
+        }
+      ]
     }
   },
   methods: {
@@ -150,46 +157,12 @@ export default {
           status: error.response?.status
         })
       }
-    },
-
-    async fetchETFRanking() {
-      try {
-        const response = await axios.get('/api/t-etf/getTopGainEtfs')
-        console.log('ETF Ranking Response:', response)
-        
-        if (response.data.code === 0) {
-          this.etfRanking = response.data.data.map(item => ({
-            code: item.stockCode,
-            name: item.stockName,
-            price: Number(item.close),
-            changePercent: Number(item.pctChg),
-            volume: Number(item.volume),
-            high: Number(item.high),
-            low: Number(item.low),
-            amount: Number(item.amount),
-            tradeDate: item.tradeDate
-          }))
-        } else {
-          console.error('获取ETF排名数据失败:', {
-            code: response.data.code,
-            msg: response.data.message,
-            fullResponse: response.data
-          })
-        }
-      } catch (error) {
-        console.error('获取ETF排名数据失败:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        })
-      }
     }
   },
   
   created() {
     this.fetchVolumeStocks()
     this.fetchLimitUpConcepts()
-    this.fetchETFRanking()
   }
 }
 </script>
