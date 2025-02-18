@@ -7,9 +7,10 @@
           <tr>
             <th>排名</th>
             <th>概念名称</th>
-            <th>成交量平均涨幅</th>
-            <th>成交量最大涨幅</th>
-            <th>概念股数量</th>
+            <th>平均涨幅</th>
+            <th>最大涨幅</th>
+            <th>涨停股数量</th>
+            <th>总成交量</th>
           </tr>
         </thead>
         <tbody>
@@ -17,12 +18,13 @@
             <td class="rank">{{ index + 1 }}</td>
             <td class="concept-name">{{ concept.conceptName }}</td>
             <td :class="['percentage', getColorClass(concept.avgIncrease)]">
-              {{ formatNumber(concept.avgIncrease) }}
+              {{ formatNumber(concept.avgIncrease) }}%
             </td>
             <td :class="['percentage', getColorClass(concept.maxIncrease)]">
-              {{ formatNumber(concept.maxIncrease) }}
+              {{ formatNumber(concept.maxIncrease) }}%
             </td>
             <td class="stock-count">{{ concept.stockCount }}只</td>
+            <td class="volume">{{ formatVolume(concept.totalVolume) }}</td>
           </tr>
         </tbody>
       </table>
@@ -32,7 +34,7 @@
 
 <script>
 export default {
-  name: 'ConceptVolumeList',
+  name: 'LimitUpConceptList',
   props: {
     title: {
       type: String,
@@ -41,8 +43,7 @@ export default {
     concepts: {
       type: Array,
       required: true
-    },
-    tradeDate: String
+    }
   },
   methods: {
     formatNumber(value) {
@@ -57,13 +58,17 @@ export default {
         'down': num < 0
       }
     },
+    formatVolume(volume) {
+      if (!volume) return '0'
+      if (volume >= 100000000) {
+        return (volume / 100000000).toFixed(1) + '亿'
+      }
+      return (volume / 10000).toFixed(1) + '万'
+    },
     handleClick(concept) {
       this.$router.push({
-        name: 'ConceptDetail',
-        params: { 
-          name: concept.conceptName,
-          date: this.tradeDate
-        }
+        name: 'LimitUpConceptDetail',
+        params: { name: concept.conceptName }
       })
     }
   }
@@ -118,6 +123,12 @@ th {
 
 .stock-count {
   text-align: center;
+  color: #666;
+}
+
+.volume {
+  text-align: right;
+  padding-right: 20px !important;
   color: #666;
 }
 

@@ -60,13 +60,13 @@ const routes = [
     component: Dashboard
   },
   {
-    path: '/concept/:name/:date',
+    path: '/concept/:name',
     name: 'ConceptDetail',
     component: ConceptDetail,
     props: true
   },
   {
-    path: '/limit-up-concept/:name/:date',
+    path: '/limit-up-concept/:name',
     name: 'LimitUpConceptDetail',
     component: LimitUpConceptDetail,
     props: true

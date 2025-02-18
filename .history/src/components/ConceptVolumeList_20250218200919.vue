@@ -41,8 +41,7 @@ export default {
     concepts: {
       type: Array,
       required: true
-    },
-    tradeDate: String
+    }
   },
   methods: {
     formatNumber(value) {
@@ -60,10 +59,7 @@ export default {
     handleClick(concept) {
       this.$router.push({
         name: 'ConceptDetail',
-        params: { 
-          name: concept.conceptName,
-          date: this.tradeDate
-        }
+        params: { name: concept.conceptName }
       })
     }
   }

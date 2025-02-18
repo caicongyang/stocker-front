@@ -29,14 +29,12 @@
         <ConceptVolumeList
           title="成交量异动概念 TOP20"
           :concepts="volumeStocks"
-          :tradeDate="selectedDate"
           class="volume-stocks"
         />
         
         <LimitUpConceptList
           title="涨停概念异动 TOP20"
           :concepts="limitUpStocks"
-          :tradeDate="selectedDate"
           class="limit-up-stocks"
         />
         
