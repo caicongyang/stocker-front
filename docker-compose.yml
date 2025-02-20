@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: caicongyang/stocker-front:latest
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_API_URL=/api
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+
+  backend:
+    image: caicongyang/stock:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+   
