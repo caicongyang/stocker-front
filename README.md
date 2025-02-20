@@ -36,6 +36,8 @@
 ### 构建镜像
 
     docker build -t stocker-front .
+    docker tag stocker-front:latest caicongyang/stocker-front:latest
+    docker push caicongyang/stocker-front:latest
 
 ### 运行容器
 
