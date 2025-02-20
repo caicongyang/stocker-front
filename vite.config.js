@@ -13,6 +13,6 @@ export default defineConfig({
     }
   },
   define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify('VITE_API_URL_PLACEHOLDER')
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || '/api')
   }
 })
