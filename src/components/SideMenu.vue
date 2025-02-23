@@ -17,10 +17,6 @@
         <i class="el-icon-bell"></i>
         <span>预警设置</span>
       </el-menu-item>
-      <el-menu-item index="6">
-        <i class="el-icon-reading"></i>
-        <span>市场词典</span>
-      </el-menu-item>
       <el-menu-item index="7">
         <i class="el-icon-notebook-1"></i>
         <span>操盘手册</span>

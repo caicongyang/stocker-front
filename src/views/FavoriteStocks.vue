@@ -19,6 +19,14 @@
               width="120">
             </el-table-column>
             <el-table-column
+              prop="type"
+              label="类型"
+              width="100">
+              <template #default="scope">
+                {{ scope.row.type === 'stock' ? '个股' : '概念' }}
+              </template>
+            </el-table-column>
+            <el-table-column
               prop="price"
               label="当前价格"
               width="120">
@@ -27,7 +35,7 @@
               prop="change"
               label="涨跌幅"
               width="120">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <span :class="{ 'up': scope.row.change > 0, 'down': scope.row.change < 0 }">
                   {{ scope.row.change > 0 ? '+' : ''}}{{ scope.row.change }}%
                 </span>
@@ -38,12 +46,17 @@
               label="成交量">
             </el-table-column>
             <el-table-column
+              prop="createTime"
+              label="加入时间"
+              width="180">
+              <template #default="scope">
+                {{ formatDateTime(scope.row.createTime) }}
+              </template>
+            </el-table-column>
+            <el-table-column
               label="操作"
-              width="150">
-              <template slot-scope="scope">
-                <el-button
-                  size="mini"
-                  @click="handleDetail(scope.row)">详情</el-button>
+              width="100">
+              <template #default="scope">
                 <el-button
                   size="mini"
                   type="danger"
@@ -140,7 +153,8 @@ export default {
         name: '',
         date: '',
         changeRange: '',
-        volumeRange: ''
+        volumeRange: '',
+        type: ''
       },
       filterTags: [
         { label: '今日上涨', value: 'up_today', type: 'success' },
@@ -159,6 +173,11 @@ export default {
     }
   },
   methods: {
+    formatDateTime(timestamp) {
+      if (!timestamp) return '';
+      const date = new Date(timestamp);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    },
     handleSearch() {
       this.loadData()
       this.$message.success('搜索成功')
@@ -169,7 +188,8 @@ export default {
         name: '',
         date: '',
         changeRange: '',
-        volumeRange: ''
+        volumeRange: '',
+        type: ''
       }
       this.loadData()
     },
@@ -184,12 +204,6 @@ export default {
     handleCurrentChange(val) {
       this.currentPage = val
       this.loadData()
-    },
-    handleDetail(row) {
-      this.$router.push({
-        name: 'StockDetail',
-        query: { symbol: row.symbol }
-      })
     },
     handleRemove(row) {
       this.$confirm('确认从自选股票中删除?', '提示', {
@@ -215,19 +229,32 @@ export default {
           {
             symbol: '600000',
             name: '浦发银行',
+            type: 'stock',
             price: 28.45,
             change: 2.15,
-            volume: '2345.6万'
+            volume: '2345.6万',
+            createTime: new Date('2024-03-01 09:30:00').getTime()
           },
           {
             symbol: '601318',
             name: '中国平安',
+            type: 'stock',
             price: 66.89,
             change: -1.23,
-            volume: '3421.2万'
+            volume: '3421.2万',
+            createTime: new Date('2024-03-02 14:20:00').getTime()
+          },
+          {
+            symbol: 'BK0740',
+            name: '证券概念',
+            type: 'concept',
+            price: 2341.45,
+            change: 3.21,
+            volume: '892.3亿',
+            createTime: new Date('2024-03-03 10:15:00').getTime()
           }
         ]
-        this.total = 2
+        this.total = 3
         this.loading = false
       }, 500)
     }

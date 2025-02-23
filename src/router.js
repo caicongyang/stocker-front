@@ -2,11 +2,9 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from './views/Login.vue'
 import Dashboard from './views/Dashboard.vue'
-import StockDetail from './views/StockDetail.vue'
 import FavoriteStocks from './views/FavoriteStocks.vue'
 import UserProfile from './views/UserProfile.vue'
 import AlertSettings from './views/AlertSettings.vue'
-import MarketDictionary from './views/MarketDictionary.vue'
 import TradingManual from './views/TradingManual.vue'
 import ConceptDetail from './views/ConceptDetail.vue'
 import LimitUpConceptDetail from './views/LimitUpConceptDetail.vue'
@@ -25,11 +23,6 @@ const routes = [
     component: Dashboard
   },
   {
-    path: '/stocks',
-    name: 'StockDetail',
-    component: StockDetail
-  },
-  {
     path: '/favorite',
     name: 'FavoriteStocks',
     component: FavoriteStocks
@@ -43,11 +36,6 @@ const routes = [
     path: '/alert',
     name: 'AlertSettings',
     component: AlertSettings
-  },
-  {
-    path: '/dictionary',
-    name: 'MarketDictionary',
-    component: MarketDictionary
   },
   {
     path: '/manual',
