@@ -8,6 +8,7 @@ import AlertSettings from './views/AlertSettings.vue'
 import TradingManual from './views/TradingManual.vue'
 import ConceptDetail from './views/ConceptDetail.vue'
 import LimitUpConceptDetail from './views/LimitUpConceptDetail.vue'
+import TradingLogList from './views/TradingLogList.vue'
 
 Vue.use(VueRouter)
 
@@ -43,11 +44,6 @@ const routes = [
     component: TradingManual
   },
   {
-    path: '/settings',
-    name: 'SystemSettings',
-    component: Dashboard
-  },
-  {
     path: '/concept/:name/:date',
     name: 'ConceptDetail',
     component: ConceptDetail,
@@ -58,6 +54,11 @@ const routes = [
     name: 'LimitUpConceptDetail',
     component: LimitUpConceptDetail,
     props: true
+  },
+  {
+    path: '/trading-log',
+    name: 'TradingLogList',
+    component: TradingLogList
   }
 ]
 

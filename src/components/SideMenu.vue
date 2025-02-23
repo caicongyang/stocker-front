@@ -14,16 +14,16 @@
         <span>自选股票</span>
       </el-menu-item>
       <el-menu-item index="3">
+        <i class="el-icon-document"></i>
+        <span>复盘日志</span>
+      </el-menu-item>
+      <el-menu-item index="4">
         <i class="el-icon-bell"></i>
         <span>预警设置</span>
       </el-menu-item>
-      <el-menu-item index="7">
+      <el-menu-item index="5">
         <i class="el-icon-notebook-1"></i>
         <span>操盘手册</span>
-      </el-menu-item>
-      <el-menu-item index="4">
-        <i class="el-icon-setting"></i>
-        <span>系统设置</span>
       </el-menu-item>
     </el-menu>
     
@@ -66,27 +66,24 @@ export default {
         case '/favorite':
           this.activeMenu = '2'
           break
-        case '/alert':
+        case '/trading-log':
           this.activeMenu = '3'
           break
-        case '/dictionary':
-          this.activeMenu = '6'
+        case '/alert':
+          this.activeMenu = '4'
           break
         case '/manual':
-          this.activeMenu = '7'
-          break
-        case '/settings':
-          this.activeMenu = '4'
+          this.activeMenu = '5'
           break
       }
     },
     handleMenuSelect(index) {
       const path = index === '1' ? '/' : 
                   index === '2' ? '/favorite' :
-                  index === '3' ? '/alert' :
-                  index === '6' ? '/dictionary' :
-                  index === '7' ? '/manual' :
-                  index === '4' ? '/settings' : null
+                  index === '3' ? '/trading-log' :
+                  index === '4' ? '/alert' :
+                  index === '5' ? '/manual' :
+                  null
                   
       if (path && this.$route.path !== path) {
         this.$router.push(path)

@@ -19,12 +19,7 @@
           </div>
         </div>
         
-        <StockList
-          title="同花顺热股 TOP20"
-          :stocks="hotStocks"
-          class="hot-stocks"
-          @click-item="goToDetail"
-        />
+       
         
         <ConceptVolumeList
           title="成交量异动概念 TOP20"
@@ -51,6 +46,12 @@
           title="ETF涨幅排名 TOP20"
           :etfs="etfRanking"
           class="etf-ranking"
+        />
+        <StockList
+          title="同花顺热股 TOP20"
+          :stocks="hotStocks"
+          class="hot-stocks"
+          @click-item="goToDetail"
         />
       </div>
     </div>
