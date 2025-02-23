@@ -15,28 +15,24 @@
 
         <!-- 添加新词条 -->
         <div class="add-term-section">
-          <el-card class="add-term-card">
-            <div slot="header" class="add-term-header">
-              <span>添加新词条</span>
-            </div>
-            <el-form :inline="true" size="small" @submit.native.prevent>
-              <el-form-item label="词条">
-                <el-input v-model="newTerm.text" placeholder="请输入词条"></el-input>
-              </el-form-item>
-              <el-form-item label="权重">
-                <el-input-number 
-                  v-model="newTerm.weight" 
-                  :min="1" 
-                  :max="100"
-                  controls-position="right"
-                  style="width: 120px">
-                </el-input-number>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" @click="handleAddTerm">添加</el-button>
-              </el-form-item>
-            </el-form>
-          </el-card>
+          <h3 class="section-title">添加新词条</h3>
+          <div class="input-row">
+            <span class="label">词条：</span>
+            <el-input
+              v-model="newTerm.text"
+              placeholder="请输入新词条"
+              class="term-input">
+            </el-input>
+            <span class="label">权重：</span>
+            <el-input-number 
+              v-model="newTerm.weight" 
+              :min="1" 
+              :max="100"
+              controls-position="right"
+              class="weight-input">
+            </el-input-number>
+            <el-button type="primary" @click="handleAdd">添加</el-button>
+          </div>
         </div>
 
         <!-- 词条列表 -->
@@ -176,7 +172,7 @@ export default {
       return '#67c23a'
     },
     
-    handleAddTerm() {
+    handleAdd() {
       if (!this.newTerm.text.trim()) {
         this.$message.warning('请输入词条内容')
         return
@@ -286,18 +282,37 @@ export default {
 }
 
 .add-term-section {
-  display: flex;
-  justify-content: center;
+  background: white;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
-.add-term-card {
-  width: 100%;
-  max-width: 800px;
+.section-title {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #333;
 }
 
-.add-term-header {
+.input-row {
   display: flex;
   align-items: center;
+}
+
+.label {
+  margin-right: 8px;
+  color: #606266;
+}
+
+.term-input {
+  margin-right: 15px;
+  flex: 1;
+}
+
+.weight-input {
+  width: 120px;
+  margin-right: 15px;
 }
 
 .terms-list-header {
