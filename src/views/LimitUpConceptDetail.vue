@@ -62,21 +62,25 @@
             </template>
           </el-table-column>
           <el-table-column
-            prop="amount"
-            label="成交额"
-            min-width="120"
-            align="right">
-            <template slot-scope="scope">
-              {{ formatAmount(scope.row.amount) }}
-            </template>
-          </el-table-column>
-          <el-table-column
             prop="tradeDate"
             label="交易日期"
             min-width="120"
             align="center">
             <template slot-scope="scope">
               {{ formatDate(scope.row.tradeDate) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="操作"
+            width="100"
+            fixed="right">
+            <template slot-scope="scope">
+              <el-button
+                size="mini"
+                type="primary"
+                @click="addToFavorite(scope.row)">
+                加入自选
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -136,13 +140,6 @@ export default {
       }
       return (volume / 10000).toFixed(1) + '万手'
     },
-    formatAmount(amount) {
-      if (!amount) return '0'
-      if (amount >= 100000000) {
-        return (amount / 100000000).toFixed(1) + '亿'
-      }
-      return (amount / 10000).toFixed(1) + '万'
-    },
     formatDisplayDate(dateStr) {
       return new Date(dateStr).toLocaleDateString()
     },
@@ -163,7 +160,6 @@ export default {
             close: item.close,
             pctChg: item.pctChg,
             volume: item.volume,
-            amount: item.amount,
             tradeDate: item.tradeDate
           }))
         } else {
@@ -174,6 +170,27 @@ export default {
         this.$message.error('获取数据失败：' + error.message)
       } finally {
         this.loading = false
+      }
+    },
+    async addToFavorite(stock) {
+      try {
+        const { data: res } = await axios.post('/api/favorite-stock', {
+          symbol: stock.stockCode,
+          name: stock.stockName,
+          type: 'stock',
+          price: stock.close,
+          change: stock.pctChg,
+          volume: stock.volume
+        })
+        
+        if (res.code === 0) {
+          this.$message.success('添加自选成功')
+        } else {
+          this.$message.error(res.msg || '添加失败')
+        }
+      } catch (error) {
+        console.error('添加失败:', error)
+        this.$message.error('添加失败')
       }
     }
   },

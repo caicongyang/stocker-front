@@ -85,9 +85,6 @@
               <el-form-item label="股票代码">
                 <el-input v-model="searchForm.symbol" placeholder="请输入股票代码"></el-input>
               </el-form-item>
-              <el-form-item label="股票名称">
-                <el-input v-model="searchForm.name" placeholder="请输入股票名称"></el-input>
-              </el-form-item>
               <el-form-item label="日期">
                 <el-date-picker
                   v-model="searchForm.date"
@@ -96,41 +93,11 @@
                   style="width: 100%">
                 </el-date-picker>
               </el-form-item>
-              <el-form-item label="涨跌幅">
-                <el-select v-model="searchForm.changeRange" placeholder="请选择" style="width: 100%">
-                  <el-option label="全部" value=""></el-option>
-                  <el-option label="上涨" value="up"></el-option>
-                  <el-option label="下跌" value="down"></el-option>
-                  <el-option label=">5%" value="gt5"></el-option>
-                  <el-option label="<-5%" value="lt-5"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="成交量">
-                <el-select v-model="searchForm.volumeRange" placeholder="请选择" style="width: 100%">
-                  <el-option label="全部" value=""></el-option>
-                  <el-option label="100万以下" value="lt100w"></el-option>
-                  <el-option label="100-500万" value="100w-500w"></el-option>
-                  <el-option label="500万以上" value="gt500w"></el-option>
-                </el-select>
-              </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="handleSearch" style="width: 100%">搜索</el-button>
                 <el-button @click="handleReset" style="width: 100%; margin-left: 0; margin-top: 10px">重置</el-button>
               </el-form-item>
             </el-form>
-          </div>
-
-          <div class="filter-tags">
-            <h3>快速筛选</h3>
-            <el-tag
-              v-for="tag in filterTags"
-              :key="tag.value"
-              effect="plain"
-              class="filter-tag"
-              :type="tag.type"
-              @click="handleTagClick(tag)">
-              {{ tag.label }}
-            </el-tag>
           </div>
         </div>
       </div>
@@ -140,6 +107,7 @@
 
 <script>
 import SideMenu from '../components/SideMenu.vue'
+import axios from 'axios'
 
 export default {
   name: 'FavoriteStocks',
@@ -150,21 +118,8 @@ export default {
     return {
       searchForm: {
         symbol: '',
-        name: '',
-        date: '',
-        changeRange: '',
-        volumeRange: '',
-        type: ''
+        date: ''
       },
-      filterTags: [
-        { label: '今日上涨', value: 'up_today', type: 'success' },
-        { label: '今日下跌', value: 'down_today', type: 'danger' },
-        { label: '近期高点', value: 'high', type: 'warning' },
-        { label: '近期低点', value: 'low', type: 'info' },
-        { label: '量能突破', value: 'volume_break', type: '' },
-        { label: '创年内新高', value: 'year_high', type: 'success' }
-      ],
-      searchQuery: '',
       loading: false,
       currentPage: 1,
       pageSize: 20,
@@ -178,85 +133,115 @@ export default {
       const date = new Date(timestamp);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     },
-    handleSearch() {
-      this.loadData()
-      this.$message.success('搜索成功')
+
+    // 搜索
+    async handleSearch() {
+      this.currentPage = 1
+      await this.loadData()
     },
-    handleReset() {
+
+    // 重置
+    async handleReset() {
       this.searchForm = {
         symbol: '',
-        name: '',
-        date: '',
-        changeRange: '',
-        volumeRange: '',
-        type: ''
+        date: ''
       }
-      this.loadData()
+      this.currentPage = 1
+      await this.loadData()
     },
-    handleTagClick(tag) {
-      this.$message.info(`已选择: ${tag.label}`)
-      this.loadData()
-    },
-    handleSizeChange(val) {
+
+    // 分页大小改变
+    async handleSizeChange(val) {
       this.pageSize = val
-      this.loadData()
+      await this.loadData()
     },
-    handleCurrentChange(val) {
+
+    // 页码改变
+    async handleCurrentChange(val) {
       this.currentPage = val
-      this.loadData()
+      await this.loadData()
     },
-    handleRemove(row) {
-      this.$confirm('确认从自选股票中删除?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
+
+    // 删除自选股
+    async handleRemove(row) {
+      try {
+        await this.$confirm('确认从自选股票中删除?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
         })
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
-      })
+
+        const { data: res } = await axios.delete(`/api/favorite-stock/${row.id}`)
+        if (res.code === 0) {
+          this.$message.success('删除成功!')
+          await this.loadData()
+        } else {
+          this.$message.error(res.msg || '删除失败')
+        }
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('删除失败:', error)
+          this.$message.error('删除失败')
+        }
+      }
     },
-    loadData() {
+
+    // 加载数据
+    async loadData() {
       this.loading = true
-      setTimeout(() => {
-        this.tableData = [
-          {
-            symbol: '600000',
-            name: '浦发银行',
-            type: 'stock',
-            price: 28.45,
-            change: 2.15,
-            volume: '2345.6万',
-            createTime: new Date('2024-03-01 09:30:00').getTime()
-          },
-          {
-            symbol: '601318',
-            name: '中国平安',
-            type: 'stock',
-            price: 66.89,
-            change: -1.23,
-            volume: '3421.2万',
-            createTime: new Date('2024-03-02 14:20:00').getTime()
-          },
-          {
-            symbol: 'BK0740',
-            name: '证券概念',
-            type: 'concept',
-            price: 2341.45,
-            change: 3.21,
-            volume: '892.3亿',
-            createTime: new Date('2024-03-03 10:15:00').getTime()
+      try {
+        // 格式化日期
+        let formattedDate = null
+        if (this.searchForm.date) {
+          const d = new Date(this.searchForm.date)
+          formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        }
+
+        const { data: res } = await axios.get('/api/favorite-stock/page', {
+          params: {
+            symbol: this.searchForm.symbol || undefined,
+            date: formattedDate,
+            pageNum: this.currentPage,
+            pageSize: this.pageSize
           }
-        ]
-        this.total = 3
+        })
+
+        if (res.code === 0) {
+          this.tableData = res.data.records
+          this.total = res.data.total
+        } else {
+          this.$message.error(res.msg || '获取数据失败')
+        }
+      } catch (error) {
+        console.error('获取数据失败:', error)
+        this.$message.error('获取数据失败')
+      } finally {
         this.loading = false
-      }, 500)
+      }
+    },
+
+    // 添加自选股
+    async addToFavorite(stock) {
+      try {
+        const { data: res } = await axios.post('/api/favorite-stock', {
+          symbol: stock.symbol,
+          name: stock.name,
+          type: stock.type || 'stock',
+          price: stock.price,
+          change: stock.change,
+          volume: stock.volume
+        })
+        
+        if (res.code === 0) {
+          this.$message.success('添加自选成功')
+          await this.loadData()
+        } else {
+          this.$message.error(res.msg || '添加失败')
+        }
+      } catch (error) {
+        console.error('添加失败:', error)
+        this.$message.error('添加失败')
+      }
     }
   },
   created() {
@@ -300,22 +285,6 @@ export default {
   padding: 20px;
   margin-bottom: 20px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.filter-tags {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.filter-tag {
-  margin: 5px;
-  cursor: pointer;
-}
-
-.filter-tag:hover {
-  opacity: 0.8;
 }
 
 h3 {

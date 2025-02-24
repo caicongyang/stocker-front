@@ -72,6 +72,19 @@
               {{ formatDate(scope.row.tradeDate) }}
             </template>
           </el-table-column>
+          <el-table-column
+            label="操作"
+            width="100"
+            fixed="right">
+            <template slot-scope="scope">
+              <el-button
+                size="mini"
+                type="primary"
+                @click="addToFavorite(scope.row)">
+                加入自选
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -157,6 +170,27 @@ export default {
         this.$message.error('获取数据失败：' + error.message)
       } finally {
         this.loading = false
+      }
+    },
+    async addToFavorite(stock) {
+      try {
+        const { data: res } = await axios.post('/api/favorite-stock', {
+          symbol: stock.stockCode,
+          name: stock.stockName,
+          type: 'stock',
+          price: stock.close,
+          change: stock.pctChg,
+          volume: stock.volume
+        })
+        
+        if (res.code === 0) {
+          this.$message.success('添加自选成功')
+        } else {
+          this.$message.error(res.msg || '添加失败')
+        }
+      } catch (error) {
+        console.error('添加失败:', error)
+        this.$message.error('添加失败')
       }
     }
   },
