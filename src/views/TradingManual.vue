@@ -73,6 +73,7 @@
 import SideMenu from '../components/SideMenu.vue'
 import * as echarts from 'echarts'
 import 'echarts-wordcloud'
+import axios from 'axios'  // 确保已经引入 axios
 
 export default {
   name: 'TradingManual',
@@ -86,26 +87,88 @@ export default {
         text: '',
         weight: 1
       },
-      termsList: [
-        { text: '止损', weight: 100 },
-        { text: '仓位控制', weight: 90 },
-        { text: '趋势', weight: 85 },
-        { text: '波段', weight: 80 },
-        { text: '突破', weight: 75 },
-        { text: '支撑', weight: 70 },
-        { text: '压力', weight: 65 },
-        { text: '回调', weight: 60 },
-        { text: '成交量', weight: 55 },
-        { text: '均线', weight: 50 },
-        { text: '反弹', weight: 45 },
-        { text: '调整', weight: 40 },
-        { text: '筹码', weight: 35 },
-        { text: '主力', weight: 30 }
-      ],
+      termsList: [],
       loading: false
     }
   },
   methods: {
+    // 获取词条列表
+    async fetchTerms() {
+      this.loading = true
+      try {
+        const { data: res } = await axios.get('/api/stock/term/list')
+        if (res.code === 0) {
+          this.termsList = res.data || []
+          this.updateChart()
+        } else {
+          this.$message.error(res.msg || '获取词条列表失败')
+        }
+      } catch (error) {
+        this.$message.error('获取词条列表失败')
+        console.error('获取词条列表失败:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // 添加词条
+    async handleAdd() {
+      if (!this.newTerm.text.trim()) {
+        this.$message.warning('请输入词条内容')
+        return
+      }
+
+      this.loading = true
+      try {
+        const { data: res } = await axios.post('/api/stock/term', {
+          text: this.newTerm.text.trim(),
+          weight: this.newTerm.weight
+        })
+        
+        if (res.code === 0) {
+          this.$message.success('添加成功')
+          await this.fetchTerms()
+          this.newTerm = { text: '', weight: 1 }
+        } else {
+          this.$message.error(res.msg || '添加失败')
+        }
+      } catch (error) {
+        this.$message.error(error.response?.data?.msg || '添加失败')
+        console.error('添加词条失败:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // 删除词条
+    async handleDeleteTerm(index) {
+      const term = this.termsList[index]
+      try {
+        await this.$confirm('确认删除该词条?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        
+        this.loading = true
+        const { data: res } = await axios.delete(`/api/stock/term/${term.id}`)
+        
+        if (res.code === 0) {
+          this.$message.success('删除成功')
+          await this.fetchTerms()
+        } else {
+          this.$message.error(res.msg || '删除失败')
+        }
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$message.error(error.response?.data?.msg || '删除失败')
+          console.error('删除词条失败:', error)
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
     initChart() {
       if (this.chart) {
         this.chart.dispose()
@@ -172,53 +235,6 @@ export default {
       return '#67c23a'
     },
     
-    handleAdd() {
-      if (!this.newTerm.text.trim()) {
-        this.$message.warning('请输入词条内容')
-        return
-      }
-      
-      if (this.termsList.some(term => term.text === this.newTerm.text.trim())) {
-        this.$message.warning('该词条已存在')
-        return
-      }
-      
-      this.loading = true
-      
-      this.termsList.push({
-        text: this.newTerm.text.trim(),
-        weight: this.newTerm.weight
-      })
-      
-      this.$nextTick(() => {
-        this.updateChart()
-        this.loading = false
-      })
-      
-      this.$message.success('添加成功')
-      
-      this.newTerm = {
-        text: '',
-        weight: 1
-      }
-    },
-    
-    handleDeleteTerm(index) {
-      this.$confirm('确认删除该词条?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.loading = true
-        this.termsList.splice(index, 1)
-        this.$nextTick(() => {
-          this.updateChart()
-          this.loading = false
-        })
-        this.$message.success('删除成功')
-      }).catch(() => {})
-    },
-
     getWeightClass(weight) {
       if (weight > 80) return 'weight-high'
       if (weight > 60) return 'weight-medium'
@@ -228,6 +244,7 @@ export default {
   },
   mounted() {
     this.initChart()
+    this.fetchTerms()  // 组件挂载时获取数据
   },
   beforeDestroy() {
     if (this.chart) {
