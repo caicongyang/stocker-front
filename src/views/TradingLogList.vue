@@ -94,6 +94,7 @@
 
 <script>
 import SideMenu from '../components/SideMenu.vue'
+import axios from 'axios'
 
 export default {
   name: 'TradingLogList',
@@ -140,70 +141,119 @@ export default {
     }
   },
   methods: {
-    formatDate(date) {
-      return new Date(date).toLocaleDateString()
+    // 获取分页数据
+    async fetchData() {
+      this.loading = true
+      try {
+        const { data: res } = await axios.get('/api/trading-log/page', {
+          params: {
+            pageNum: this.currentPage,
+            pageSize: this.pageSize
+          }
+        })
+        if (res.code === 0) {
+          this.tableData = res.data.records
+          this.total = res.data.total
+        } else {
+          this.$message.error(res.msg || '获取数据失败')
+        }
+      } catch (error) {
+        console.error('获取数据失败:', error)
+        this.$message.error('获取数据失败')
+      } finally {
+        this.loading = false
+      }
     },
+
+    // 获取详情
+    async handleDetail(row) {
+      this.detailLoading = true
+      this.showDetailDialog = true
+      try {
+        const { data: res } = await axios.get(`/api/trading-log/${row.id}`)
+        if (res.code === 0) {
+          this.detailData = res.data
+        } else {
+          this.$message.error(res.msg || '获取详情失败')
+        }
+      } catch (error) {
+        console.error('获取详情失败:', error)
+        this.$message.error('获取详情失败')
+      } finally {
+        this.detailLoading = false
+      }
+    },
+
+    // 提交表单
+    submitForm() {
+      this.$refs.form.validate(async (valid) => {
+        if (valid) {
+          try {
+            // 格式化日期
+            const formattedDate = this.formatDateTimeForSubmit(this.form.date);
+            
+            const { data: res } = await axios.post('/api/trading-log', {
+              date: formattedDate,
+              title: this.form.title,
+              content: this.form.content
+            })
+            
+            if (res.code === 0) {
+              this.$message.success('保存成功')
+              this.showCreateDialog = false
+              this.fetchData()
+            } else {
+              this.$message.error(res.msg || '保存失败')
+            }
+          } catch (error) {
+            console.error('保存失败:', error)
+            this.$message.error('保存失败')
+          }
+        }
+      })
+    },
+
+    // 用于显示的日期格式化
+    formatDate(date) {
+      if (!date) return ''
+      const d = new Date(date)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+
+    // 用于提交的日期时间格式化
+    formatDateTimeForSubmit(date) {
+      if (!date) return ''
+      const d = new Date(date)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      const hours = String(d.getHours()).padStart(2, '0')
+      const minutes = String(d.getMinutes()).padStart(2, '0')
+      const seconds = String(d.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    },
+
     handleSizeChange(val) {
       this.pageSize = val
       this.fetchData()
     },
+
     handleCurrentChange(val) {
       this.currentPage = val
       this.fetchData()
     },
+
     handleCreate() {
       this.dialogTitle = '新建复盘日志'
       this.form = {
-        date: '',
+        date: new Date(),
         title: '',
         content: ''
       }
       this.showCreateDialog = true
-    },
-    handleDetail(row) {
-      this.detailLoading = true
-      this.showDetailDialog = true
-      // 模拟API调用
-      setTimeout(() => {
-        this.detailData = {
-          title: row.title,
-          date: row.date,
-          content: '今日市场整体表现平稳，主要指数小幅上涨。\n\n热点板块：\n1. 新能源车持续活跃\n2. 芯片概念出现分化\n3. 医药板块企稳回升\n\n市场研判：\n短期市场仍在震荡筑底阶段，建议关注业绩超预期板块...'
-        }
-        this.detailLoading = false
-      }, 500)
-    },
-    submitForm() {
-      this.$refs.form.validate((valid) => {
-        if (valid) {
-          // 模拟API调用
-          setTimeout(() => {
-            this.$message.success('保存成功')
-            this.showCreateDialog = false
-            this.fetchData()
-          }, 500)
-        }
-      })
-    },
-    fetchData() {
-      this.loading = true
-      // 模拟API调用
-      setTimeout(() => {
-        this.tableData = [
-          {
-            id: 1,
-            date: '2024-03-20',
-            title: '3月20日市场分析复盘'
-          },
-          {
-            id: 2,
-            date: '2024-03-19',
-            title: '市场情绪分析与热点追踪'
-          }
-        ]
-        this.total = 2
-        this.loading = false
-      }, 500)
     }
   },
   created() {
