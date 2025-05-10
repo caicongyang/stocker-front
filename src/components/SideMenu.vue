@@ -25,6 +25,10 @@
         <i class="el-icon-notebook-1"></i>
         <span>操盘手册</span>
       </el-menu-item>
+      <el-menu-item index="6">
+        <i class="el-icon-chat-dot-square"></i>
+        <span>AI 助手</span>
+      </el-menu-item>
     </el-menu>
     
     <div class="user-section">
@@ -75,6 +79,9 @@ export default {
         case '/manual':
           this.activeMenu = '5'
           break
+        case '/ai-chatbox':
+          this.activeMenu = '6'
+          break
       }
     },
     handleMenuSelect(index) {
@@ -83,6 +90,7 @@ export default {
                   index === '3' ? '/trading-log' :
                   index === '4' ? '/alert' :
                   index === '5' ? '/manual' :
+                  index === '6' ? '/ai-chatbox' :
                   null
                   
       if (path && this.$route.path !== path) {

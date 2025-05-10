@@ -9,6 +9,7 @@ import TradingManual from './views/TradingManual.vue'
 import ConceptDetail from './views/ConceptDetail.vue'
 import LimitUpConceptDetail from './views/LimitUpConceptDetail.vue'
 import TradingLogList from './views/TradingLogList.vue'
+import AIChatbox from './views/AIChatbox.vue'
 
 Vue.use(VueRouter)
 
@@ -42,6 +43,11 @@ const routes = [
     path: '/manual',
     name: 'TradingManual',
     component: TradingManual
+  },
+  {
+    path: '/ai-chatbox',
+    name: 'AIChatbox',
+    component: AIChatbox
   },
   {
     path: '/concept/:name/:date',
