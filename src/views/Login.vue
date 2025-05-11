@@ -57,7 +57,7 @@ export default {
           // 设置登录状态
           localStorage.setItem('isLoggedIn', 'true')
           this.$message.success('登录成功')
-          this.$router.push('/')
+          this.$router.push('/dashboard')
         } else {
           return false
         }
@@ -67,7 +67,7 @@ export default {
   created() {
     // 如果已经登录，直接跳转到首页
     if (localStorage.getItem('isLoggedIn')) {
-      this.$router.push('/')
+      this.$router.push('/dashboard')
     }
   }
 }

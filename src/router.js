@@ -10,6 +10,7 @@ import ConceptDetail from './views/ConceptDetail.vue'
 import LimitUpConceptDetail from './views/LimitUpConceptDetail.vue'
 import TradingLogList from './views/TradingLogList.vue'
 import AIChatbox from './views/AIChatbox.vue'
+import FinancialNews from './views/FinancialNews.vue'
 
 Vue.use(VueRouter)
 
@@ -21,6 +22,11 @@ const routes = [
   },
   {
     path: '/',
+    name: 'FinancialNews',
+    component: FinancialNews
+  },
+  {
+    path: '/dashboard',
     name: 'Dashboard',
     component: Dashboard
   },
@@ -75,15 +81,13 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn')
   
-  if (to.path === '/login') {
-    if (isLoggedIn) {
-      next('/')
-    } else {
-      next()
-    }
+  // Allow direct access to the financial news page and login page
+  if (to.path === '/' || to.path === '/login') {
+    next()
   } else {
+    // Require login for all other routes
     if (!isLoggedIn) {
-      next('/login')
+      next('/')
     } else {
       next()
     }

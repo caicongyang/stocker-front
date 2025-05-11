@@ -64,7 +64,7 @@ export default {
     setActiveMenu() {
       const path = this.$route.path
       switch (path) {
-        case '/':
+        case '/dashboard':
           this.activeMenu = '1'
           break
         case '/favorite':
@@ -85,7 +85,7 @@ export default {
       }
     },
     handleMenuSelect(index) {
-      const path = index === '1' ? '/' : 
+      const path = index === '1' ? '/dashboard' : 
                   index === '2' ? '/favorite' :
                   index === '3' ? '/trading-log' :
                   index === '4' ? '/alert' :
