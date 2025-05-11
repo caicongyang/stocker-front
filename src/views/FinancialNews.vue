@@ -11,7 +11,8 @@
           placeholder="搜索股票代码、名称或概念"
           prefix-icon="el-icon-search"
           v-model="searchText"
-          class="search-input">
+          class="search-input"
+          @keyup.enter.native="handleSearch">
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
       </div>
@@ -42,8 +43,55 @@
       </el-alert>
     </div>
     
+    <!-- Search results section -->
+    <div v-if="showSearchResults" class="search-results-container">
+      <div class="search-results-header">
+        <h2>
+          <span>搜索结果</span>
+          <el-button type="text" icon="el-icon-close" @click="closeSearchResults"></el-button>
+        </h2>
+        <p v-if="searchResults.length">找到 {{ searchResults.length }} 条相关报告</p>
+        <p v-else-if="!isSearching">未找到与 "{{ searchText }}" 相关的内容</p>
+      </div>
+      
+      <div v-if="isSearching" class="loading-container">
+        <el-skeleton :rows="3" animated />
+      </div>
+      
+      <div v-else-if="searchResults.length" class="search-results-list">
+        <el-card v-for="(report, index) in searchResults" :key="'search-'+index" class="search-result-card" shadow="hover">
+          <div class="report-header">
+            <h3>{{ report.title }}</h3>
+            <div class="report-meta">
+              <el-tag size="small" type="info">{{ report.type }}</el-tag>
+              <el-tag size="small" type="primary">{{ report.date }}</el-tag>
+            </div>
+          </div>
+          
+          <div v-if="report.stockCode !== '未知'" class="stock-info">
+            <el-tag type="info">{{ report.stockCode }}</el-tag>
+            <strong>{{ report.stockName }}</strong>
+          </div>
+          
+          <div class="tags-container" v-if="report.tags && report.tags.length">
+            <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
+              {{ tag }}
+            </el-tag>
+          </div>
+          
+          <div class="report-content">
+            <p>{{ report.summary }}</p>
+          </div>
+          
+          <div class="report-footer">
+            <el-button type="primary" plain size="small" @click="showReportDetail(report.reportId)">阅读完整报告</el-button>
+          </div>
+        </el-card>
+      </div>
+    </div>
+    
     <!-- Tabs for report sections -->
-    <div v-else class="tabs-container">
+    <div v-else-if="!loading && !error" class="tabs-container">
       <el-tabs v-model="activeTab" type="card">
         <el-tab-pane label="AI大盘解析" name="market">
           <div class="report-grid">
@@ -134,7 +182,10 @@ export default {
       marketReports: [],
       stockReports: [],
       loading: true,
-      error: null
+      error: null,
+      isSearching: false,
+      searchResults: [],
+      showSearchResults: false
     }
   },
   created() {
@@ -294,15 +345,50 @@ export default {
     },
     
     handleSearch() {
-      if (this.searchText.trim()) {
-        this.$message({
-          message: '需要登录后才能查看详细搜索结果',
-          type: 'info'
-        })
-        setTimeout(() => {
-          this.goToLogin()
-        }, 1000)
+      if (!this.searchText.trim()) {
+        return
       }
+      
+      this.isSearching = true
+      this.showSearchResults = true
+      
+      axios.get(`${config.apiBaseUrl}/search`, {
+        params: {
+          keyword: this.searchText.trim(),
+          limit: 10
+        }
+      })
+        .then(response => {
+          this.searchResults = response.data.reports ? response.data.reports.map(report => ({
+            title: report.title,
+            date: this.formatDate(report.created_at),
+            stockName: report.code ? this.extractStockName(report.title, report.code) : '未知',
+            stockCode: report.code || '未知',
+            summary: this.generateSummary(report.content, 150),
+            reportId: report.report_id,
+            type: report.report_type === 'market' ? '大盘分析' : '个股分析',
+            tags: report.tags ? report.tags.split(',') : []
+          })) : []
+          this.isSearching = false
+        })
+        .catch(error => {
+          console.error('搜索失败:', error)
+          if (error.response && error.response.status === 422) {
+            const errorMsg = error.response.data && error.response.data.detail 
+              ? `参数错误: ${error.response.data.detail}` 
+              : '搜索参数无效，请修改搜索词';
+            this.$message.error(errorMsg);
+          } else {
+            this.$message.error('搜索失败，请稍后再试')
+          }
+          this.isSearching = false
+        })
+    },
+    
+    closeSearchResults() {
+      this.showSearchResults = false
+      this.searchText = ''
+      this.searchResults = []
     }
   }
 }
@@ -581,6 +667,52 @@ export default {
   .report-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
+}
+
+/* Search results styles */
+.search-results-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+}
+
+.search-results-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ebeef5;
+  padding-bottom: 15px;
+}
+
+.search-results-header h2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #303133;
+}
+
+.search-results-header p {
+  color: #909399;
+  margin: 0;
+}
+
+.search-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-result-card {
+  border-radius: 8px;
+  border: none;
+  overflow: hidden;
+}
+
+.report-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
 }
 
 @media (max-width: 768px) {
