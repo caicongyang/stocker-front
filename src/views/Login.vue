@@ -11,7 +11,7 @@
             <el-input
               v-model="loginForm.username"
               prefix-icon="el-icon-user"
-              placeholder="请输入用户名">
+              placeholder="root">
             </el-input>
           </el-form-item>
           <el-form-item prop="password">
@@ -19,11 +19,11 @@
               v-model="loginForm.password"
               prefix-icon="el-icon-lock"
               type="password"
-              placeholder="请输入密码">
+              placeholder="root">
             </el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleLogin" class="login-button">登录</el-button>
+            <el-button type="primary" @click="handleLogin" class="login-button">直接登录</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -52,16 +52,10 @@ export default {
   },
   methods: {
     handleLogin() {
-      this.$refs.loginForm.validate(valid => {
-        if (valid) {
-          // 设置登录状态
-          localStorage.setItem('isLoggedIn', 'true')
-          this.$message.success('登录成功')
-          this.$router.push('/dashboard')
-        } else {
-          return false
-        }
-      })
+      // 不进行任何校验，直接登录
+      localStorage.setItem('isLoggedIn', 'true')
+      this.$message.success('登录成功')
+      this.$router.push('/dashboard')
     }
   },
   created() {

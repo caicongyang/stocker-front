@@ -110,7 +110,7 @@ export default {
       }).then(() => {
         localStorage.removeItem('isLoggedIn')
         this.$message.success('已退出登录')
-        this.$router.push('/login')
+        this.$router.push('/')
       }).catch(() => {})
     }
   }

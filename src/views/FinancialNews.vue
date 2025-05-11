@@ -28,8 +28,22 @@
       </div>
     </div>
 
+    <!-- Loading and error states -->
+    <div v-if="loading" class="loading-container">
+      <el-skeleton :rows="6" animated />
+    </div>
+    
+    <div v-else-if="error" class="error-container">
+      <el-alert
+        :title="error"
+        type="error"
+        show-icon
+        :closable="false">
+      </el-alert>
+    </div>
+    
     <!-- Tabs for report sections -->
-    <div class="tabs-container">
+    <div v-else class="tabs-container">
       <el-tabs v-model="activeTab" type="card">
         <el-tab-pane label="AI大盘解析" name="market">
           <div class="report-grid">
@@ -38,11 +52,16 @@
                 <h3>{{ report.title }}</h3>
                 <el-tag size="small" type="primary">{{ report.date }}</el-tag>
               </div>
+              <div class="tags-container" v-if="report.tags && report.tags.length">
+                <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
+                  {{ tag }}
+                </el-tag>
+              </div>
               <div class="report-content">
                 <p>{{ report.summary }}</p>
               </div>
               <div class="report-footer">
-                <el-button type="primary" plain size="small" @click="showLogin">阅读完整报告</el-button>
+                <el-button type="primary" plain size="small" @click="showReportDetail(report.reportId)">阅读完整报告</el-button>
               </div>
             </el-card>
           </div>
@@ -58,11 +77,16 @@
                 <el-tag type="info">{{ report.stockCode }}</el-tag>
                 <strong>{{ report.stockName }}</strong>
               </div>
+              <div class="tags-container" v-if="report.tags && report.tags.length">
+                <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
+                  {{ tag }}
+                </el-tag>
+              </div>
               <div class="report-content">
                 <p>{{ report.summary }}</p>
               </div>
               <div class="report-footer">
-                <el-button type="primary" plain size="small" @click="showLogin">阅读完整报告</el-button>
+                <el-button type="primary" plain size="small" @click="showReportDetail(report.reportId)">阅读完整报告</el-button>
               </div>
             </el-card>
           </div>
@@ -93,34 +117,13 @@
         </div>
       </div>
     </div>
-
-    <!-- Login dialog -->
-    <el-dialog title="登录" :visible.sync="loginDialogVisible" width="400px" center custom-class="login-dialog">
-      <el-form :model="loginForm" :rules="rules" ref="loginForm">
-        <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            prefix-icon="el-icon-user"
-            placeholder="请输入用户名">
-          </el-input>
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input
-            v-model="loginForm.password"
-            prefix-icon="el-icon-lock"
-            type="password"
-            placeholder="请输入密码">
-          </el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleLogin" style="width: 100%">登录</el-button>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+import config from '../config/config'
+
 export default {
   name: 'FinancialNews',
   data() {
@@ -128,86 +131,168 @@ export default {
       activeTab: 'market',
       searchText: '',
       showDonation: false,
-      loginDialogVisible: false,
-      loginForm: {
-        username: '',
-        password: ''
-      },
-      rules: {
-        username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' }
-        ],
-        password: [
-          { required: true, message: '请输入密码', trigger: 'blur' }
-        ]
-      },
-      marketReports: [
-        {
-          title: '全球经济形势与A股市场展望',
-          date: '2023-06-15',
-          summary: '本周A股市场震荡上行，上证指数收盘于3280点，涨幅1.2%。科技板块表现活跃，芯片、人工智能领域个股走强。市场风险偏好有所提升，外资持续流入。展望后市，随着政策支持力度加大，A股有望维持震荡上行格局。'
-        },
-        {
-          title: '行业轮动与投资机会分析',
-          date: '2023-06-14',
-          summary: '近期市场呈现明显的行业轮动特征，新能源、半导体、医药板块轮番表现。从资金流向看，外资重点布局大消费和科技领域。结合基本面和技术面分析，建议关注政策支持方向和业绩确定性较强的板块。'
-        },
-        {
-          title: '宏观经济数据解读及货币政策影响',
-          date: '2023-06-12',
-          summary: '5月经济数据整体向好，工业增加值同比增长4.5%，社会消费品零售总额同比增长6.8%，均好于市场预期。货币政策维持稳健，流动性合理充裕，有利于资本市场稳定发展。'
-        }
-      ],
-      stockReports: [
-        {
-          title: '龙头科技股投资价值分析',
-          date: '2023-06-15',
-          stockName: '阿里巴巴',
-          stockCode: '9988.HK',
-          summary: '公司业务稳健复苏，云计算和国际电商业务增长强劲，估值处于历史低位，具备较高安全边际。'
-        },
-        {
-          title: '新能源车产业链投资机会',
-          date: '2023-06-14',
-          stockName: '宁德时代',
-          stockCode: '300750',
-          summary: '全球动力电池龙头地位稳固，技术优势明显，新一代CTP电池技术即将量产，有望进一步提升市场份额。'
-        },
-        {
-          title: '半导体行业核心标的分析',
-          date: '2023-06-13',
-          stockName: '中芯国际',
-          stockCode: '688981',
-          summary: '国内领先晶圆代工企业，受益于国产替代进程加速，先进制程研发稳步推进，长期成长确定性强。'
-        }
-      ]
+      marketReports: [],
+      stockReports: [],
+      loading: true,
+      error: null
     }
   },
   created() {
     // If already logged in, redirect to dashboard
     if (localStorage.getItem('isLoggedIn')) {
       this.$router.push('/dashboard')
+    } else {
+      this.fetchReports()
     }
   },
   methods: {
+    fetchReports() {
+      this.loading = true
+      this.error = null
+      
+      axios.get(`${config.aiApiBaseUrl}/recent-analysis`)
+        .then(response => {
+          this.marketReports = response.data.market_reports.map(report => ({
+            title: report.title,
+            date: this.formatDate(report.created_at),
+            summary: this.generateSummary(report.content, 200),
+            reportId: report.report_id,
+            tags: report.tags ? report.tags.split(',') : []
+          }))
+          
+          this.stockReports = response.data.stock_reports.map(report => ({
+            title: report.title,
+            date: this.formatDate(report.created_at),
+            stockName: report.code ? this.extractStockName(report.title, report.code) : '未知',
+            stockCode: report.code || '未知',
+            summary: this.generateSummary(report.content, 150),
+            reportId: report.report_id,
+            tags: report.tags ? report.tags.split(',') : []
+          }))
+          
+          this.loading = false
+        })
+        .catch(error => {
+          console.error('获取报告失败:', error)
+          this.error = '获取数据失败，请稍后再试'
+          this.loading = false
+          
+          // 加载失败时使用默认数据
+          this.loadDefaultData()
+        })
+    },
+    
+    formatDate(dateString) {
+      try {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('zh-CN', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit' 
+        })
+      } catch (e) {
+        return dateString
+      }
+    },
+    
+    generateSummary(content, maxLength) {
+      if (!content) return ''
+      
+      // 移除Markdown标记
+      let summary = content.replace(/#+\s+/g, '')
+        .replace(/\*\*/g, '')
+        .replace(/\n+/g, ' ')
+        .replace(/```markdown|```/g, '')
+        .replace(/\|.*?\|/g, '')
+        .replace(/---/g, '')
+        .replace(/\*+/g, '')
+        
+      // 截取适当长度
+      if (summary.length > maxLength) {
+        summary = summary.substring(0, maxLength) + '...'
+      }
+      
+      return summary
+    },
+    
+    extractStockName(title, code) {
+      // 尝试从标题中提取股票名称
+      if (title.includes('（') && title.includes('）')) {
+        const match = title.match(/（(.+?)）/)
+        if (match && match[1]) {
+          const fullName = match[1]
+          // 如果包含股票代码，提取前面的部分作为名称
+          if (fullName.includes(code)) {
+            return fullName.split(code)[0].trim()
+          }
+          return fullName
+        }
+      }
+      
+      // 实在无法提取，返回替代文本
+      return '个股'
+    },
+    
+    loadDefaultData() {
+      // 当API失败时的默认数据
+      this.marketReports = [
+        {
+          title: '全球经济形势与A股市场展望',
+          date: '2023-06-15',
+          summary: '本周A股市场震荡上行，上证指数收盘于3280点，涨幅1.2%。科技板块表现活跃，芯片、人工智能领域个股走强。市场风险偏好有所提升，外资持续流入。展望后市，随着政策支持力度加大，A股有望维持震荡上行格局。',
+          tags: ['大盘', '市场分析']
+        },
+        {
+          title: '行业轮动与投资机会分析',
+          date: '2023-06-14',
+          summary: '近期市场呈现明显的行业轮动特征，新能源、半导体、医药板块轮番表现。从资金流向看，外资重点布局大消费和科技领域。结合基本面和技术面分析，建议关注政策支持方向和业绩确定性较强的板块。',
+          tags: ['行业分析', '市场分析']
+        },
+        {
+          title: '宏观经济数据解读及货币政策影响',
+          date: '2023-06-12',
+          summary: '5月经济数据整体向好，工业增加值同比增长4.5%，社会消费品零售总额同比增长6.8%，均好于市场预期。货币政策维持稳健，流动性合理充裕，有利于资本市场稳定发展。',
+          tags: ['宏观经济', '货币政策']
+        }
+      ]
+      
+      this.stockReports = [
+        {
+          title: '龙头科技股投资价值分析',
+          date: '2023-06-15',
+          stockName: '阿里巴巴',
+          stockCode: '9988.HK',
+          summary: '公司业务稳健复苏，云计算和国际电商业务增长强劲，估值处于历史低位，具备较高安全边际。',
+          tags: ['科技股', '投资价值']
+        },
+        {
+          title: '新能源车产业链投资机会',
+          date: '2023-06-14',
+          stockName: '宁德时代',
+          stockCode: '300750',
+          summary: '全球动力电池龙头地位稳固，技术优势明显，新一代CTP电池技术即将量产，有望进一步提升市场份额。',
+          tags: ['新能源', '产业链']
+        },
+        {
+          title: '半导体行业核心标的分析',
+          date: '2023-06-13',
+          stockName: '中芯国际',
+          stockCode: '688981',
+          summary: '国内领先晶圆代工企业，受益于国产替代进程加速，先进制程研发稳步推进，长期成长确定性强。',
+          tags: ['半导体', '标的分析']
+        }
+      ]
+    },
+    
+    showReportDetail(reportId) {
+      // 导航到报告详情页
+      this.$router.push(`/report/${reportId}`)
+    },
+    
     goToLogin() {
       this.$router.push('/login')
     },
-    showLogin() {
-      this.loginDialogVisible = true
-    },
-    handleLogin() {
-      this.$refs.loginForm.validate(valid => {
-        if (valid) {
-          localStorage.setItem('isLoggedIn', 'true')
-          this.$message.success('登录成功')
-          this.loginDialogVisible = false
-          this.$router.push('/dashboard')
-        } else {
-          return false
-        }
-      })
-    },
+    
     handleSearch() {
       if (this.searchText.trim()) {
         this.$message({
@@ -215,7 +300,7 @@ export default {
           type: 'info'
         })
         setTimeout(() => {
-          this.showLogin()
+          this.goToLogin()
         }, 1000)
       }
     }
@@ -294,6 +379,13 @@ export default {
   opacity: 0.9;
 }
 
+.loading-container,
+.error-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
 .tabs-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -339,6 +431,17 @@ export default {
 
 .stock-info strong {
   color: #303133;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.report-tag {
+  margin-right: 5px;
 }
 
 .report-content {
@@ -463,10 +566,6 @@ export default {
 
 .donation-footer p {
   margin: 0;
-}
-
-.login-dialog .el-dialog__body {
-  padding-top: 10px;
 }
 
 /* Tab styles */
