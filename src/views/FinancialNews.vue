@@ -352,7 +352,7 @@ export default {
       this.isSearching = true
       this.showSearchResults = true
       
-      axios.get(`${config.apiBaseUrl}/search`, {
+      axios.get(`${config.aiApiBaseUrl}/search`, {
         params: {
           keyword: this.searchText.trim(),
           limit: 10

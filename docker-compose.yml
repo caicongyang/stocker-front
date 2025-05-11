@@ -18,3 +18,9 @@ services:
       - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+
+
+  ai-backend:
+    image: caicongyang/financial-engineering:latest
+    ports:
+      - "8000:8000"

@@ -54,6 +54,25 @@
           @click-item="goToDetail"
         />
       </div>
+      
+      <!-- Donation QR code -->
+      <div class="donation-container" @mouseenter="showDonation = true" @mouseleave="showDonation = false">
+        <div class="donation-button" :class="{ 'active': showDonation }">
+          <i class="el-icon-coffee-cup"></i>
+        </div>
+        <div class="donation-box" :class="{ 'show': showDonation }">
+          <div class="donation-header">
+            <h3>请我喝杯咖啡</h3>
+            <p>如果此网站对您有帮助，欢迎打赏支持</p>
+          </div>
+          <div class="donation-qr">
+            <img src="QRCode.jpg" alt="微信支付二维码" />
+          </div>
+          <div class="donation-footer">
+            <p>感谢您的支持 ❤️</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -106,7 +125,8 @@ export default {
         disabledDate(time) {
           return time.getTime() > Date.now()
         }
-      }
+      },
+      showDonation: false
     }
   },
   methods: {
@@ -307,5 +327,98 @@ export default {
   .etf-ranking {
     grid-column: 1 / -1;
   }
+}
+
+/* Donation styles */
+.donation-container {
+  position: fixed;
+  right: 20px;
+  bottom: 50px;
+  z-index: 99;
+}
+
+.donation-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #409EFF;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.donation-button i {
+  font-size: 24px;
+  color: white;
+}
+
+.donation-button.active {
+  background-color: #67c23a;
+  transform: scale(0.9);
+}
+
+.donation-box {
+  position: absolute;
+  right: 0;
+  bottom: 60px;
+  width: 240px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transform: translateY(20px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.donation-box.show {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.donation-header {
+  padding: 15px;
+  text-align: center;
+  background-color: #f5f7fa;
+}
+
+.donation-header h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #303133;
+}
+
+.donation-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #606266;
+}
+
+.donation-qr {
+  padding: 15px;
+  text-align: center;
+}
+
+.donation-qr img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+.donation-footer {
+  padding: 10px;
+  text-align: center;
+  background-color: #f5f7fa;
+  font-size: 12px;
+  color: #909399;
+}
+
+.donation-footer p {
+  margin: 0;
 }
 </style>
