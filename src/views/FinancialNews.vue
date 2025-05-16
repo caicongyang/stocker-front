@@ -25,7 +25,9 @@
     <div class="hero-section">
       <div class="hero-content">
         <h2>AI时代 最专业的证券市场解析</h2>
-        <p>获取最新的大盘分析、个股资金流向分析</p>
+        <p>每天更新AI大盘分析、涨停个股资金流向分析、最近港美股财报解析;</p>
+        <p>如果没有搜索到您想要的个股，右上角登录，付费解析个股资金流向情况;</p>
+
       </div>
     </div>
 
@@ -139,6 +141,31 @@
             </el-card>
           </div>
         </el-tab-pane>
+        <el-tab-pane label="AI财报" name="financial">
+          <div class="report-grid">
+            <el-card v-for="(report, index) in financialReports" :key="'financial-'+index" class="report-card" shadow="hover">
+              <div class="report-header">
+                <h3>{{ report.title }}</h3>
+                <el-tag size="small" type="warning">{{ report.date }}</el-tag>
+              </div>
+              <div class="stock-info">
+                <el-tag type="info">{{ report.stockCode }}</el-tag>
+                <strong>{{ report.stockName }}</strong>
+              </div>
+              <div class="tags-container" v-if="report.tags && report.tags.length">
+                <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
+                  {{ tag }}
+                </el-tag>
+              </div>
+              <div class="report-content">
+                <p>{{ report.summary }}</p>
+              </div>
+              <div class="report-footer">
+                <el-button type="primary" plain size="small" @click="showFinancialReportDetail(report.reportId)">查看完整财报</el-button>
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </div>
 
@@ -181,6 +208,7 @@ export default {
       showDonation: false,
       marketReports: [],
       stockReports: [],
+      financialReports: [],
       loading: true,
       error: null,
       isSearching: false,
@@ -220,6 +248,20 @@ export default {
             reportId: report.report_id,
             tags: report.tags ? report.tags.split(',') : []
           }))
+          
+          // 获取财报数据
+          if (response.data.finance_reports) {
+            this.financialReports = response.data.finance_reports.map(report => ({
+              title: report.title,
+              date: this.formatDate(report.created_at),
+              stockName: report.code ? this.extractStockName(report.title, report.code) : '未知',
+              stockCode: report.code || '未知',
+              summary: this.generateSummary(report.content, 150),
+              reportId: report.report_id,
+              tags: report.tags ? report.tags.split(',') : [],
+              contentType: 'html'
+            }))
+          }
           
           this.loading = false
         })
@@ -333,11 +375,50 @@ export default {
           tags: ['半导体', '标的分析']
         }
       ]
+      
+      // 默认财报数据
+      this.financialReports = [
+        {
+          title: '2023年Q2季度财报解析',
+          date: '2023-07-15',
+          stockName: '腾讯控股',
+          stockCode: '00700.HK',
+          summary: '腾讯Q2营收同比增长11%，净利润同比增长15%，游戏业务增长放缓，广告和金融科技业务表现亮眼。整体业绩超出市场预期。',
+          tags: ['财报解析', 'Q2业绩'],
+          reportId: 'financial-001',
+          contentType: 'html'
+        },
+        {
+          title: '2023年中报业绩预览',
+          date: '2023-07-10',
+          stockName: '比亚迪',
+          stockCode: '002594',
+          summary: '比亚迪上半年新能源汽车销量突破120万辆，同比增长98%，预计营收增长65%以上，净利润增长超过200%，创历史新高。',
+          tags: ['中报预览', '新能源车'],
+          reportId: 'financial-002',
+          contentType: 'html'
+        },
+        {
+          title: '2023年Q1财务分析',
+          date: '2023-05-20',
+          stockName: '茅台',
+          stockCode: '600519',
+          summary: '茅台Q1收入389亿元，同比增长17.4%，净利润208亿元，同比增长19.1%。渠道改革成效显著，直营比例提升，批价稳定。',
+          tags: ['财报分析', '白酒龙头'],
+          reportId: 'financial-003',
+          contentType: 'html'
+        }
+      ]
     },
     
     showReportDetail(reportId) {
       // 导航到报告详情页
       this.$router.push(`/report/${reportId}`)
+    },
+    
+    showFinancialReportDetail(reportId) {
+      // 导航到财报详情页，使用不同的路由以区分HTML内容
+      this.$router.push(`/financial-report/${reportId}`)
     },
     
     goToLogin() {

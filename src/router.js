@@ -12,6 +12,7 @@ import TradingLogList from './views/TradingLogList.vue'
 import AIChatbox from './views/AIChatbox.vue'
 import FinancialNews from './views/FinancialNews.vue'
 import ReportDetail from './views/ReportDetail.vue'
+import FinancialReportDetail from './views/FinancialReportDetail.vue'
 import StockFlowAnalysis from './views/StockFlowAnalysis.vue'
 
 Vue.use(VueRouter)
@@ -31,6 +32,12 @@ const routes = [
     path: '/report/:id',
     name: 'ReportDetail',
     component: ReportDetail,
+    props: true
+  },
+  {
+    path: '/financial-report/:id',
+    name: 'FinancialReportDetail',
+    component: FinancialReportDetail,
     props: true
   },
   {
@@ -95,7 +102,7 @@ router.beforeEach((to, from, next) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn')
   
   // Allow direct access to the financial news page, report detail and login page
-  if (to.path === '/' || to.path === '/login' || to.path.startsWith('/report/')) {
+  if (to.path === '/' || to.path === '/login' || to.path.startsWith('/report/') || to.path.startsWith('/financial-report/')) {
     next()
   } else {
     // Require login for all other routes
