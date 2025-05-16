@@ -185,7 +185,7 @@
           <p>如果此网站对您有帮助，欢迎打赏支持</p>
         </div>
         <div class="donation-qr">
-          <img src="QRCode.jpg" alt="微信支付二维码" />
+          <img src="/QRCode.jpg" alt="微信支付二维码" />
         </div>
         <div class="donation-footer">
           <p>感谢您的支持 ❤️</p>
