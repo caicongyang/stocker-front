@@ -12,6 +12,7 @@ import TradingLogList from './views/TradingLogList.vue'
 import AIChatbox from './views/AIChatbox.vue'
 import FinancialNews from './views/FinancialNews.vue'
 import ReportDetail from './views/ReportDetail.vue'
+import StockFlowAnalysis from './views/StockFlowAnalysis.vue'
 
 Vue.use(VueRouter)
 
@@ -78,6 +79,11 @@ const routes = [
     path: '/trading-log',
     name: 'TradingLogList',
     component: TradingLogList
+  },
+  {
+    path: '/stock-flow-analysis',
+    name: 'StockFlowAnalysis',
+    component: StockFlowAnalysis
   }
 ]
 

@@ -29,6 +29,10 @@
         <i class="el-icon-chat-dot-square"></i>
         <span>AI 助手</span>
       </el-menu-item>
+      <el-menu-item index="7">
+        <i class="el-icon-money"></i>
+        <span>资金流水分析</span>
+      </el-menu-item>
     </el-menu>
     
     <div class="user-section">
@@ -82,6 +86,9 @@ export default {
         case '/ai-chatbox':
           this.activeMenu = '6'
           break
+        case '/stock-flow-analysis':
+          this.activeMenu = '7'
+          break
       }
     },
     handleMenuSelect(index) {
@@ -91,6 +98,7 @@ export default {
                   index === '4' ? '/alert' :
                   index === '5' ? '/manual' :
                   index === '6' ? '/ai-chatbox' :
+                  index === '7' ? '/stock-flow-analysis' :
                   null
                   
       if (path && this.$route.path !== path) {
