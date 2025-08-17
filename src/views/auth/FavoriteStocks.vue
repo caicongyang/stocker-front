@@ -106,8 +106,8 @@
 </template>
 
 <script>
-import SideMenu from '../components/SideMenu.vue'
-import axios from 'axios'
+import SideMenu from '../../components/SideMenu.vue'
+import request from '@/utils/request'
 
 export default {
   name: 'FavoriteStocks',
@@ -171,7 +171,7 @@ export default {
           type: 'warning'
         })
 
-        const { data: res } = await axios.delete(`/api/favorite-stock/${row.id}`)
+        const { data: res } = await request.delete(`/favorite-stock/${row.id}`)
         if (res.code === 0) {
           this.$message.success('删除成功!')
           await this.loadData()
@@ -197,7 +197,7 @@ export default {
           formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
         }
 
-        const { data: res } = await axios.get('/api/favorite-stock/page', {
+        const { data: res } = await request.get('/favorite-stock/page', {
           params: {
             symbol: this.searchForm.symbol || undefined,
             date: formattedDate,

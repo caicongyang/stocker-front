@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>环境变量测试</title>
+</head>
+<body>
+    <h1>环境变量测试</h1>
+    <div id="env-info"></div>
+    
+    <script type="module">
+        const envInfo = document.getElementById('env-info');
+        
+        // 显示环境变量信息
+        envInfo.innerHTML = `
+            <h2>Vite环境变量:</h2>
+            <p><strong>VITE_GOOGLE_CLIENT_ID:</strong> ${import.meta.env.VITE_GOOGLE_CLIENT_ID || '未设置'}</p>
+            <p><strong>VITE_API_URL:</strong> ${import.meta.env.VITE_API_URL || '未设置'}</p>
+            <p><strong>VITE_AI_API_URL:</strong> ${import.meta.env.VITE_AI_API_URL || '未设置'}</p>
+            <p><strong>MODE:</strong> ${import.meta.env.MODE}</p>
+            <p><strong>DEV:</strong> ${import.meta.env.DEV}</p>
+            <p><strong>PROD:</strong> ${import.meta.env.PROD}</p>
+            
+            <h2>所有环境变量:</h2>
+            <pre>${JSON.stringify(import.meta.env, null, 2)}</pre>
+        `;
+        
+        console.log('所有环境变量:', import.meta.env);
+    </script>
+</body>
+</html>

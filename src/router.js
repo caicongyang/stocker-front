@@ -1,19 +1,28 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Login from './views/Login.vue'
-import Dashboard from './views/Dashboard.vue'
-import FavoriteStocks from './views/FavoriteStocks.vue'
-import UserProfile from './views/UserProfile.vue'
-import AlertSettings from './views/AlertSettings.vue'
-import TradingManual from './views/TradingManual.vue'
-import ConceptDetail from './views/ConceptDetail.vue'
-import LimitUpConceptDetail from './views/LimitUpConceptDetail.vue'
-import TradingLogList from './views/TradingLogList.vue'
-import AIChatbox from './views/AIChatbox.vue'
-import FinancialNews from './views/FinancialNews.vue'
-import ReportDetail from './views/ReportDetail.vue'
-import FinancialReportDetail from './views/FinancialReportDetail.vue'
-import StockFlowAnalysis from './views/StockFlowAnalysis.vue'
+
+// 公开页面 - 不需要登录
+import Login from './views/public/Login.vue'
+import FinancialNews from './views/public/FinancialNews.vue'
+import ReportDetail from './views/public/ReportDetail.vue'
+import FinancialReportDetail from './views/public/FinancialReportDetail.vue'
+import PaymentSuccess from './views/public/PaymentSuccess.vue'
+import PaymentCancel from './views/public/PaymentCancel.vue'
+
+// 需要认证的页面
+import Dashboard from './views/auth/Dashboard.vue'
+import FavoriteStocks from './views/auth/FavoriteStocks.vue'
+import UserProfile from './views/auth/UserProfile.vue'
+import AlertSettings from './views/auth/AlertSettings.vue'
+import TradingManual from './views/auth/TradingManual.vue'
+import ConceptDetail from './views/auth/ConceptDetail.vue'
+import LimitUpConceptDetail from './views/auth/LimitUpConceptDetail.vue'
+import TradingLogList from './views/auth/TradingLogList.vue'
+import AIChatbox from './views/auth/AIChatbox.vue'
+import StockFlowAnalysis from './views/auth/StockFlowAnalysis.vue'
+import Payment from './views/auth/Payment.vue'
+import { requireAuth, requireGuest } from './utils/auth-guard'
+import store from './store'
 
 Vue.use(VueRouter)
 
@@ -21,7 +30,8 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    beforeEnter: requireGuest
   },
   {
     path: '/',
@@ -43,54 +53,80 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: Dashboard
+    component: Dashboard,
+    beforeEnter: requireAuth
   },
   {
     path: '/favorite',
     name: 'FavoriteStocks',
-    component: FavoriteStocks
+    component: FavoriteStocks,
+    beforeEnter: requireAuth
   },
   {
     path: '/profile',
     name: 'UserProfile',
-    component: UserProfile
+    component: UserProfile,
+    beforeEnter: requireAuth
   },
   {
     path: '/alert',
     name: 'AlertSettings',
-    component: AlertSettings
+    component: AlertSettings,
+    beforeEnter: requireAuth
   },
   {
     path: '/manual',
     name: 'TradingManual',
-    component: TradingManual
+    component: TradingManual,
+    beforeEnter: requireAuth
   },
   {
     path: '/ai-chatbox',
     name: 'AIChatbox',
-    component: AIChatbox
+    component: AIChatbox,
+    beforeEnter: requireAuth
   },
   {
     path: '/concept/:name/:date',
     name: 'ConceptDetail',
     component: ConceptDetail,
-    props: true
+    props: true,
+    beforeEnter: requireAuth
   },
   {
     path: '/limit-up-concept/:name/:date',
     name: 'LimitUpConceptDetail',
     component: LimitUpConceptDetail,
-    props: true
+    props: true,
+    beforeEnter: requireAuth
   },
   {
     path: '/trading-log',
     name: 'TradingLogList',
-    component: TradingLogList
+    component: TradingLogList,
+    beforeEnter: requireAuth
   },
   {
     path: '/stock-flow-analysis',
     name: 'StockFlowAnalysis',
-    component: StockFlowAnalysis
+    component: StockFlowAnalysis,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/payment',
+    name: 'Payment',
+    component: Payment,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/payment/success',
+    name: 'PaymentSuccess',
+    component: PaymentSuccess
+  },
+  {
+    path: '/payment/cancel',
+    name: 'PaymentCancel',
+    component: PaymentCancel
   }
 ]
 
@@ -98,19 +134,31 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  const isLoggedIn = localStorage.getItem('isLoggedIn')
-  
-  // Allow direct access to the financial news page, report detail and login page
+router.beforeEach(async (to, from, next) => {
+  // 如果是登录页面或公开页面，直接通过
   if (to.path === '/' || to.path === '/login' || to.path.startsWith('/report/') || to.path.startsWith('/financial-report/')) {
     next()
-  } else {
-    // Require login for all other routes
-    if (!isLoggedIn) {
-      next('/')
-    } else {
+    return
+  }
+  
+  // 检查是否有token
+  const token = localStorage.getItem('auth_token')
+  if (!token) {
+    next('/login')
+    return
+  }
+  
+  // 如果有token但没有用户信息，尝试获取用户信息
+  if (!store.getters['auth/user']) {
+    try {
+      await store.dispatch('auth/getCurrentUser')
       next()
+    } catch (error) {
+      // token无效，跳转到登录页
+      next('/login')
     }
+  } else {
+    next()
   }
 })
 

@@ -1,5 +1,11 @@
 <template>
   <div class="side-menu">
+    <div class="menu-header">
+      <div class="logo">
+        <i class="el-icon-data-analysis"></i>
+        <span class="logo-text">股票分析</span>
+      </div>
+    </div>
     <el-menu
       :default-active="activeMenu"
       class="menu-vertical"
@@ -36,25 +42,40 @@
     </el-menu>
     
     <div class="user-section">
-      <div class="user-info" @click="goToProfile">
-        <el-avatar :size="50" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"></el-avatar>
-        <span class="username">管理员</span>
+      <div class="user-info" @click="goToProfile" v-if="user">
+        <el-avatar :size="40" :src="user.avatar || defaultAvatar"></el-avatar>
+        <div class="user-details">
+          <span class="username">{{ user.name || user.email }}</span>
+          <span class="user-email">{{ user.email }}</span>
+        </div>
       </div>
-      <el-button type="text" class="logout-button" @click="handleLogout">
-        <i class="el-icon-switch-button"></i>
-        退出登录
-      </el-button>
+      <div class="user-actions">
+        <el-button type="text" size="small" @click="goToProfile" v-if="user">
+          <i class="el-icon-user"></i>
+          个人中心
+        </el-button>
+        <el-button type="text" size="small" class="logout-button" @click="handleLogout">
+          <i class="el-icon-switch-button"></i>
+          退出登录
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   name: 'SideMenu',
   data() {
     return {
-      activeMenu: '1'
+      activeMenu: '1',
+      defaultAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
     }
+  },
+  computed: {
+    ...mapGetters('auth', ['user', 'isAuthenticated'])
   },
   created() {
     this.setActiveMenu()
@@ -65,6 +86,8 @@ export default {
     }
   },
   methods: {
+    ...mapActions('auth', ['logout']),
+    
     setActiveMenu() {
       const path = this.$route.path
       switch (path) {
@@ -110,16 +133,36 @@ export default {
         this.$router.push('/profile')
       }
     },
-    handleLogout() {
-      this.$confirm('确认退出系统?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        localStorage.removeItem('isLoggedIn')
-        this.$message.success('已退出登录')
-        this.$router.push('/')
-      }).catch(() => {})
+    async handleLogout() {
+      try {
+        const result = await this.$confirm('确认退出系统？', '退出确认', {
+          confirmButtonText: '确定退出',
+          cancelButtonText: '取消',
+          type: 'warning',
+          center: true
+        })
+        
+        if (result === 'confirm') {
+          const logoutResult = await this.logout()
+          
+          if (logoutResult.success) {
+            this.$message.success(logoutResult.message)
+            
+            // 清除所有可能的本地存储
+            localStorage.removeItem('isLoggedIn')
+            localStorage.removeItem('user_preferences')
+            sessionStorage.clear()
+            
+            // 跳转到登录页
+            this.$router.push('/login')
+          } else {
+            this.$message.error('退出登录失败，请重试')
+          }
+        }
+      } catch (error) {
+        // 用户取消操作，不做任何处理
+        console.log('用户取消退出操作')
+      }
     }
   }
 }
@@ -127,12 +170,34 @@ export default {
 
 <style scoped>
 .side-menu {
-  width: 200px;
+  width: 240px;
   height: 100%;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
+}
+
+.menu-header {
+  padding: 20px;
+  border-bottom: 1px solid #e6e6e6;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.logo i {
+  font-size: 24px;
+  margin-right: 8px;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .menu-vertical {
@@ -141,29 +206,78 @@ export default {
 }
 
 .user-section {
-  padding: 20px;
+  padding: 15px;
   border-top: 1px solid #e6e6e6;
+  background-color: #fafafa;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  padding: 10px 0;
+  padding: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.user-info:hover {
+  background-color: #f0f0f0;
+}
+
+.user-details {
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .username {
-  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 500;
   color: #333;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.user-actions .el-button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.user-actions .el-button + .el-button {
+  margin-left: 0;
 }
 
 .logout-button {
-  width: 100%;
-  margin-top: 10px;
-  color: #f56c6c;
+  color: #f56c6c !important;
 }
 
-.logout-button i {
-  margin-right: 5px;
+.logout-button:hover {
+  background-color: #fef0f0 !important;
+}
+
+.user-actions .el-button i {
+  margin-right: 6px;
+  font-size: 14px;
 }
 </style>

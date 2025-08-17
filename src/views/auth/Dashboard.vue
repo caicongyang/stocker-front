@@ -78,14 +78,14 @@
 </template>
 
 <script>
-import MarketHeat from '../components/MarketHeat.vue'
-import StockList from '../components/StockList.vue'
-import ConceptVolumeList from '../components/ConceptVolumeList.vue'
-import LimitUpConceptList from '../components/LimitUpConceptList.vue'
-import ETFRankingList from '../components/ETFRankingList.vue'
-import SideMenu from '../components/SideMenu.vue'
+import MarketHeat from '../../components/MarketHeat.vue'
+import StockList from '../../components/StockList.vue'
+import ConceptVolumeList from '../../components/ConceptVolumeList.vue'
+import LimitUpConceptList from '../../components/LimitUpConceptList.vue'
+import ETFRankingList from '../../components/ETFRankingList.vue'
+import SideMenu from '../../components/SideMenu.vue'
 import axios from 'axios'
-import config from '../config/config'
+import config from '../../config/config'
 
 export default {
   name: 'Dashboard',

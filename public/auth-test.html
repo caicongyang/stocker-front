@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>认证测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 8px 16px; margin: 5px; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>认证和API测试</h1>
+    
+    <div class="section">
+        <h2>1. 当前配置检查</h2>
+        <button onclick="checkConfig()">检查配置</button>
+        <div id="config-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. 认证状态检查</h2>
+        <button onclick="checkAuth()">检查认证状态</button>
+        <div id="auth-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. API测试</h2>
+        <button onclick="testAPI()">测试自选股API</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. 登录测试</h2>
+        <input type="email" id="email" placeholder="邮箱" value="test@example.com">
+        <input type="password" id="password" placeholder="密码" value="test123">
+        <button onclick="testLogin()">测试登录</button>
+        <div id="login-result"></div>
+    </div>
+
+    <script>
+        // 检查配置
+        function checkConfig() {
+            const result = document.getElementById('config-result');
+            const config = {
+                apiBaseUrl: 'http://localhost:8000',
+                aiApiBaseUrl: 'http://localhost:8000',
+                googleClientId: 'test-client-id'
+            };
+            
+            result.innerHTML = `
+                <div class="info">
+                    <h3>当前配置:</h3>
+                    <pre>${JSON.stringify(config, null, 2)}</pre>
+                </div>
+            `;
+        }
+        
+        // 检查认证状态
+        function checkAuth() {
+            const result = document.getElementById('auth-result');
+            const token = localStorage.getItem('auth_token');
+            
+            result.innerHTML = `
+                <div class="${token ? 'success' : 'error'}">
+                    <p>Token: ${token || '未找到'}</p>
+                    <p>认证状态: ${token ? '已认证' : '未认证'}</p>
+                </div>
+            `;
+        }
+        
+        // 测试API
+        async function testAPI() {
+            const result = document.getElementById('api-result');
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                result.innerHTML = '<div class="error">请先登录获取token</div>';
+                return;
+            }
+            
+            try {
+                result.innerHTML = '<div class="info">正在测试API...</div>';
+                
+                const response = await fetch('http://localhost:8000/favorite-stock/page?pageNum=1&pageSize=20', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.text();
+                
+                result.innerHTML = `
+                    <div class="${response.ok ? 'success' : 'error'}">
+                        <p>状态码: ${response.status}</p>
+                        <p>响应类型: ${response.headers.get('content-type')}</p>
+                        <h4>响应内容:</h4>
+                        <pre>${data.substring(0, 500)}${data.length > 500 ? '...' : ''}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">请求失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 测试登录
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                result.innerHTML = '<div class="info">正在登录...</div>';
+                
+                const response = await fetch('http://localhost:8000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    localStorage.setItem('auth_token', data.token);
+                    result.innerHTML = `
+                        <div class="success">
+                            <p>登录成功!</p>
+                            <p>Token已保存到localStorage</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <p>登录失败</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">登录请求失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 页面加载时自动检查配置和认证状态
+        window.onload = function() {
+            checkConfig();
+            checkAuth();
+        };
+    </script>
+</body>
+</html>

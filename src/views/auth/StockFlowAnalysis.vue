@@ -139,9 +139,9 @@
 </template>
 
 <script>
-import SideMenu from '../components/SideMenu.vue'
+import SideMenu from '../../components/SideMenu.vue'
 import axios from 'axios'
-import config from '../config/config'
+import config from '../../config/config'
 import { marked } from 'marked'
 
 export default {

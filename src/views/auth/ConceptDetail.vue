@@ -5,7 +5,7 @@
       <div class="header">
         <div class="title-section">
           <h2>{{ name }}</h2>
-          <div class="subtitle">涨停概念股票列表</div>
+          <div class="subtitle">成交量异动股票列表</div>
         </div>
         <div class="info-section">
           <div class="date">统计日期：{{ formatDisplayDate(date) }}</div>
@@ -54,11 +54,13 @@
           </el-table-column>
           <el-table-column
             prop="volume"
-            label="成交量"
+            label="成交量增长"
             min-width="120"
             align="right">
             <template slot-scope="scope">
-              {{ formatVolume(scope.row.volume) }}
+              <span :class="getColorClass(scope.row.volume)">
+                {{ formatMultiple(scope.row.volume) }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column
@@ -90,12 +92,12 @@
 </template>
 
 <script>
-import SideMenu from '../components/SideMenu.vue'
+import SideMenu from '../../components/SideMenu.vue'
 import axios from 'axios'
-import config from '../config/config'
+import config from '../../config/config'
 
 export default {
-  name: 'LimitUpConceptDetail',
+  name: 'ConceptDetail',
   components: {
     SideMenu
   },
@@ -133,12 +135,10 @@ export default {
     formatDate(date) {
       return new Date(date).toLocaleDateString()
     },
-    formatVolume(volume) {
-      if (!volume) return '0'
-      if (volume >= 100000000) {
-        return (volume / 100000000).toFixed(1) + '亿手'
-      }
-      return (volume / 10000).toFixed(1) + '万手'
+    formatMultiple(value) {
+      const num = Number(value)
+      if (isNaN(num)) return '0.00'
+      return num > 0 ? `${num.toFixed(2)}倍` : `${num.toFixed(2)}倍`
     },
     formatDisplayDate(dateStr) {
       return new Date(dateStr).toLocaleDateString()
@@ -146,7 +146,7 @@ export default {
     async fetchData() {
       this.loading = true
       try {
-        const response = await axios.get(`${config.apiBaseUrl}/limit-up-concept-details/list`, {
+        const response = await axios.get(`${config.apiBaseUrl}/concept-volume-details/list`, {
           params: {
             conceptName: this.name,
             tradeDate: this.date
@@ -159,7 +159,7 @@ export default {
             stockName: item.stockName,
             close: item.close,
             pctChg: item.pctChg,
-            volume: item.volume,
+            volume: item.volumeIncreaseRatio,
             tradeDate: item.tradeDate
           }))
         } else {

@@ -70,7 +70,7 @@
 </template>
 
 <script>
-import SideMenu from '../components/SideMenu.vue'
+import SideMenu from '../../components/SideMenu.vue'
 import * as echarts from 'echarts'
 import 'echarts-wordcloud'
 import axios from 'axios'  // 确保已经引入 axios

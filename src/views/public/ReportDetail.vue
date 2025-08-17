@@ -38,11 +38,10 @@
             </div>
           </div>
           <div class="stock-info" v-if="report.code">
-            <el-tag type="warning">{{ report.code }}</el-tag>
+            <el-tag type="success">{{ report.code }}</el-tag>
           </div>
         </div>
-        <!-- 直接渲染HTML内容，不使用marked转换 -->
-        <div class="html-content" v-html="report.content"></div>
+        <div class="markdown-content" v-html="renderedContent"></div>
       </div>
     </div>
 
@@ -55,16 +54,23 @@
 
 <script>
 import axios from 'axios'
-import config from '../config/config'
+import { marked } from 'marked'
+import config from '../../config/config'
 
 export default {
-  name: 'FinancialReportDetail',
+  name: 'ReportDetail',
   data() {
     return {
       loading: true,
       error: null,
       report: {},
       reportId: this.$route.params.id
+    }
+  },
+  computed: {
+    renderedContent() {
+      if (!this.report.content) return ''
+      return marked(this.report.content)
     }
   },
   created() {
@@ -81,75 +87,13 @@ export default {
           this.loading = false
           
           // 设置页面标题
-          document.title = this.report.title || '财报详情'
+          document.title = this.report.title || '报告详情'
         })
         .catch(error => {
-          console.error('获取财报详情失败:', error)
-          this.error = '获取财报详情失败，请稍后再试'
+          console.error('获取报告详情失败:', error)
+          this.error = '获取报告详情失败，请稍后再试'
           this.loading = false
-          
-          // 如果出错，可以加载默认数据
-          this.loadDefaultData()
         })
-    },
-    loadDefaultData() {
-      // 当API失败时加载默认数据
-      this.report = {
-        title: '2023年腾讯Q2季度财报解析',
-        created_at: '2023-07-15',
-        code: '00700.HK',
-        tags: '财报解析,Q2业绩,互联网',
-        content: `
-          <div class="financial-report">
-            <h2>公司概览</h2>
-            <p>腾讯控股是中国领先的互联网增值服务提供商，业务涵盖社交媒体、网络游戏、金融科技、云计算等多个领域。</p>
-            
-            <h2>财务摘要</h2>
-            <table class="financial-table">
-              <tr>
-                <th>项目</th>
-                <th>数值(百万元)</th>
-                <th>同比增长</th>
-              </tr>
-              <tr>
-                <td>总收入</td>
-                <td>149,208</td>
-                <td>+11%</td>
-              </tr>
-              <tr>
-                <td>毛利润</td>
-                <td>67,135</td>
-                <td>+13%</td>
-              </tr>
-              <tr>
-                <td>净利润</td>
-                <td>35,630</td>
-                <td>+15%</td>
-              </tr>
-            </table>
-            
-            <h2>业务分析</h2>
-            <div class="business-segment">
-              <h3>增值服务</h3>
-              <p>增值服务收入达78,730百万元，同比增长8%。其中游戏业务收入同比增长5%，社交网络收入同比增长12%。</p>
-            </div>
-            
-            <div class="business-segment">
-              <h3>网络广告</h3>
-              <p>网络广告收入达23,605百万元，同比增长17%，主要受益于电商广告和社交广告的强劲增长。</p>
-            </div>
-            
-            <div class="business-segment">
-              <h3>金融科技及企业服务</h3>
-              <p>金融科技及企业服务收入达46,873百万元，同比增长15%，主要来自支付服务和云服务的增长。</p>
-            </div>
-            
-            <h2>展望与风险</h2>
-            <p>公司将继续加大在人工智能和产业互联网的投入，同时面临监管环境变化和市场竞争加剧的挑战。</p>
-          </div>
-        `
-      }
-      this.loading = false
     },
     goBack() {
       this.$router.push('/')
@@ -269,68 +213,74 @@ export default {
   margin-bottom: 15px;
 }
 
-/* HTML 内容样式 */
-.html-content {
+.markdown-content {
   line-height: 1.8;
   color: #303133;
   font-size: 16px;
 }
 
-.html-content h1,
-.html-content h2,
-.html-content h3,
-.html-content h4,
-.html-content h5,
-.html-content h6 {
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
   margin-top: 1.5em;
   margin-bottom: 0.8em;
-  color: #303133;
 }
 
-.html-content h2 {
-  border-bottom: 1px solid #ebeef5;
-  padding-bottom: 0.5em;
-}
-
-.html-content p {
+.markdown-content p {
   margin-bottom: 1em;
 }
 
-.html-content table {
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+
+.markdown-content table {
   border-collapse: collapse;
   width: 100%;
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
 }
 
-.html-content table th,
-.html-content table td {
+.markdown-content table th,
+.markdown-content table td {
   border: 1px solid #dcdfe6;
-  padding: 10px 12px;
-  text-align: left;
+  padding: 8px 12px;
 }
 
-.html-content table th {
+.markdown-content table th {
   background-color: #f5f7fa;
-  font-weight: 600;
 }
 
-.html-content table tr:nth-child(even) {
-  background-color: #fafafa;
+.markdown-content blockquote {
+  padding: 0 1em;
+  color: #606266;
+  border-left: 0.25em solid #dcdfe6;
+  margin-bottom: 1em;
 }
 
-.financial-table {
-  width: 100%;
-  margin: 20px 0;
+.markdown-content code {
+  background-color: #f5f7fa;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
 }
 
-.business-segment {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px dashed #ebeef5;
+.markdown-content pre {
+  background-color: #f5f7fa;
+  padding: 16px;
+  border-radius: 4px;
+  overflow: auto;
+  margin-bottom: 1em;
 }
 
-.business-segment:last-child {
-  border-bottom: none;
+.markdown-content pre code {
+  background-color: transparent;
+  padding: 0;
 }
 
 /* Risk disclaimer styles */
@@ -370,7 +320,7 @@ export default {
     padding: 20px;
   }
   
-  .html-content {
+  .markdown-content {
     font-size: 15px;
   }
 }
