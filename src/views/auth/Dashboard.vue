@@ -110,17 +110,9 @@ export default {
       ],
       volumeStocks: [],
       limitUpStocks: [],
-      abnormalETFs: [
-        {
-          symbol: '159915',
-          name: '创业板ETF',
-          price: 2.856,
-          change: 1.85,
-          volume: '12.3亿'
-        }
-      ],
+      abnormalETFs: [],
       etfRanking: [],
-      selectedDate: new Date().toISOString().split('T')[0],
+      selectedDate: this.getDefaultDate(),
       pickerOptions: {
         disabledDate(time) {
           return time.getTime() > Date.now()
@@ -130,6 +122,20 @@ export default {
     }
   },
   methods: {
+    getDefaultDate() {
+      const today = new Date()
+      const dayOfWeek = today.getDay() // 0 = 周日, 1 = 周一, ..., 6 = 周六
+      
+      // 如果是周六(6)或周日(0)，选择上一个周五
+      if (dayOfWeek === 0) { // 周日
+        today.setDate(today.getDate() - 2) // 回到周五
+      } else if (dayOfWeek === 6) { // 周六
+        today.setDate(today.getDate() - 1) // 回到周五
+      }
+      
+      return today.toISOString().split('T')[0]
+    },
+    
     goToDetail(stock) {
       this.$router.push({
         name: 'StockDetail',
@@ -141,6 +147,7 @@ export default {
       this.fetchVolumeStocks()
       this.fetchLimitUpConcepts()
       this.fetchETFRanking()
+      this.fetchAbnormalETFs()
     },
     
     async fetchVolumeStocks() {
@@ -245,6 +252,39 @@ export default {
           status: error.response?.status
         })
       }
+    },
+
+    async fetchAbnormalETFs() {
+      try {
+        const response = await axios.get(`${config.apiBaseUrl}/t-etf/getAbnormalETFs`, {
+          params: {
+            tradeDate: this.selectedDate
+          }
+        })
+        console.log('Abnormal ETFs Response:', response)
+        
+        if (response.data.code === 0) {
+          this.abnormalETFs = response.data.data.map(item => ({
+            symbol: item.stockCode,
+            name: item.stockName,
+            price: Number(item.close),
+            change: Number(item.changePercent) || 0,
+            volume: item.volume || '0倍'
+          }))
+        } else {
+          console.error('获取异动ETF数据失败:', {
+            code: response.data.code,
+            msg: response.data.message,
+            fullResponse: response.data
+          })
+        }
+      } catch (error) {
+        console.error('获取异动ETF数据失败:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        })
+      }
     }
   },
   
@@ -252,6 +292,7 @@ export default {
     this.fetchVolumeStocks()
     this.fetchLimitUpConcepts()
     this.fetchETFRanking()
+    this.fetchAbnormalETFs()
   }
 }
 </script>

@@ -21,6 +21,12 @@ import TradingLogList from './views/auth/TradingLogList.vue'
 import AIChatbox from './views/auth/AIChatbox.vue'
 import StockFlowAnalysis from './views/auth/StockFlowAnalysis.vue'
 import Payment from './views/auth/Payment.vue'
+import PromptManagement from './views/auth/PromptManagement.vue'
+import ToolManagement from './views/auth/ToolManagement.vue'
+import PlatformBreakthroughConcept from './views/auth/PlatformBreakthroughConcept.vue'
+import PlatformBreakthroughConceptDetail from './views/auth/PlatformBreakthroughConceptDetail.vue'
+import HigherConceptList from './views/auth/HigherConceptList.vue'
+import HigherConceptDetail from './views/auth/HigherConceptDetail.vue'
 import { requireAuth, requireGuest } from './utils/auth-guard'
 import store from './store'
 
@@ -127,6 +133,44 @@ const routes = [
     path: '/payment/cancel',
     name: 'PaymentCancel',
     component: PaymentCancel
+  },
+  {
+    path: '/prompt-management',
+    name: 'PromptManagement',
+    component: PromptManagement,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/tool-management',
+    name: 'ToolManagement',
+    component: ToolManagement,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/platform-breakthrough-concept',
+    name: 'PlatformBreakthroughConcept',
+    component: PlatformBreakthroughConcept,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/platform-breakthrough-concept/:name/:date',
+    name: 'PlatformBreakthroughConceptDetail',
+    component: PlatformBreakthroughConceptDetail,
+    props: true,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/higher-concept-list',
+    name: 'HigherConceptList',
+    component: HigherConceptList,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/higher-concept/:name/:date',
+    name: 'HigherConceptDetail',
+    component: HigherConceptDetail,
+    props: true,
+    beforeEnter: requireAuth
   }
 ]
 
@@ -136,7 +180,7 @@ const router = new VueRouter({
 
 router.beforeEach(async (to, from, next) => {
   // 如果是登录页面或公开页面，直接通过
-  if (to.path === '/' || to.path === '/login' || to.path.startsWith('/report/') || to.path.startsWith('/financial-report/')) {
+  if (to.path === '/' || to.path === '/login' || to.path.startsWith('/report/') || to.path.startsWith('/financial-report/') || to.path.startsWith('/payment/')) {
     next()
     return
   }
@@ -144,7 +188,11 @@ router.beforeEach(async (to, from, next) => {
   // 检查是否有token
   const token = localStorage.getItem('auth_token')
   if (!token) {
-    next('/login')
+    if (to.path !== '/login') {
+      next('/login')
+    } else {
+      next()
+    }
     return
   }
   
@@ -155,11 +203,20 @@ router.beforeEach(async (to, from, next) => {
       next()
     } catch (error) {
       // token无效，跳转到登录页
-      next('/login')
+      if (to.path !== '/login') {
+        next('/login')
+      } else {
+        next()
+      }
     }
   } else {
     next()
   }
 })
+
+const originalPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch(err => err)
+}
 
 export default router

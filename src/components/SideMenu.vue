@@ -12,8 +12,16 @@
       @select="handleMenuSelect"
     >
       <el-menu-item index="1">
-        <i class="el-icon-data-board"></i>
+        <i class="el-icon-s-data"></i>
         <span>大盘看板</span>
+      </el-menu-item>
+      <el-menu-item index="10">
+        <i class="el-icon-s-marketing"></i>
+        <span>突破平台</span>
+      </el-menu-item>
+      <el-menu-item index="11">
+        <i class="el-icon-s-finance"></i>
+        <span>创新高概念</span>
       </el-menu-item>
       <el-menu-item index="2">
         <i class="el-icon-star-off"></i>
@@ -38,6 +46,14 @@
       <el-menu-item index="7">
         <i class="el-icon-money"></i>
         <span>资金流水分析</span>
+      </el-menu-item>
+      <el-menu-item index="8">
+        <i class="el-icon-document-copy"></i>
+        <span>提示词管理</span>
+      </el-menu-item>
+      <el-menu-item index="9">
+        <i class="el-icon-setting"></i>
+        <span>工具管理</span>
       </el-menu-item>
     </el-menu>
     
@@ -112,6 +128,18 @@ export default {
         case '/stock-flow-analysis':
           this.activeMenu = '7'
           break
+        case '/prompt-management':
+          this.activeMenu = '8'
+          break
+        case '/tool-management':
+          this.activeMenu = '9'
+          break
+        case '/platform-breakthrough-concept':
+          this.activeMenu = '10'
+          break
+        case '/higher-concept-list':
+          this.activeMenu = '11'
+          break
       }
     },
     handleMenuSelect(index) {
@@ -122,6 +150,10 @@ export default {
                   index === '5' ? '/manual' :
                   index === '6' ? '/ai-chatbox' :
                   index === '7' ? '/stock-flow-analysis' :
+                  index === '8' ? '/prompt-management' :
+                  index === '9' ? '/tool-management' :
+                  index === '10' ? '/platform-breakthrough-concept' :
+                  index === '11' ? '/higher-concept-list' :
                   null
                   
       if (path && this.$route.path !== path) {
@@ -203,6 +235,13 @@ export default {
 .menu-vertical {
   flex: 1;
   border-right: none;
+}
+
+.menu-vertical .el-menu-item i {
+  margin-right: 8px;
+  font-size: 16px;
+  width: 16px;
+  text-align: center;
 }
 
 .user-section {
