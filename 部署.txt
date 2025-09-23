@@ -1,0 +1,1 @@
+cloudflare （stock.lovezxr.org） --> nginx (服务器)  -->  stock-front(使用 nginx  部署 )
