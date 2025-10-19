@@ -23,8 +23,12 @@
           style="width: 160px"
           class="input-item"
         ></el-date-picker>
+        <el-button type="success" @click="submitForm" :loading="loading" class="btn-item">查询报告</el-button>
         
-        <el-button type="primary" @click="submitForm" :loading="loading" class="btn-item">生成分析</el-button>
+        <el-button type="primary" @click="generateReport" :loading="loading" class="btn-item">生成分析报告</el-button>
+        
+        <el-button type="warning" @click="generateMarketReport" :loading="marketLoading" class="btn-item">生成大盘报告</el-button>
+        
         <el-button @click="resetForm" class="btn-item">重置</el-button>
       </div>
       
@@ -170,6 +174,7 @@ export default {
         }
       },
       loading: false,
+      marketLoading: false,
       reportsList: [],
       pagination: {
         page: 1,
@@ -239,7 +244,7 @@ export default {
       })
     },
     
-    // 提交表单生成新的分析报告
+    // 查询报告列表
     submitForm() {
       // 简单验证
       if (this.formData.stockCode && !/^\d{6}$/.test(this.formData.stockCode)) {
@@ -305,15 +310,15 @@ export default {
       this.loading = true
       
       axios.post(
-        `${config.aiApiBaseUrl}/generate_stock_flow_analysis_generate_stock_flow_post`, 
+        `${config.aiApiBaseUrl}/generate-stock-flow`, 
         {
           stock_code: this.formData.stockCode,
           date: this.formData.date
         }
       )
       .then(response => {
-        if (response.data && response.data.success) {
-          this.$message.success('分析报告生成成功')
+        if (response.data && response.data.message) {
+          this.$message.success(response.data.message)
           // 刷新列表
           this.fetchReportsList()
         } else {
@@ -325,6 +330,34 @@ export default {
         console.error('生成资金流水分析失败:', error)
         this.$message.error(error.response?.data?.detail || '请求失败，请检查网络连接或联系管理员')
         this.loading = false
+      })
+    },
+    
+    // 生成大盘分析报告
+    generateMarketReport() {
+      this.marketLoading = true
+      
+      axios.post(
+        `${config.aiApiBaseUrl}/generate-market-analysis`, 
+        {
+          target_date: this.formData.date,
+          should_publish_wechat: false
+        }
+      )
+      .then(response => {
+        if (response.data && response.data.message) {
+          this.$message.success(response.data.message)
+          // 刷新列表以显示可能的新报告
+          this.fetchReportsList()
+        } else {
+          this.$message.error('生成大盘分析报告失败，请稍后再试')
+        }
+        this.marketLoading = false
+      })
+      .catch(error => {
+        console.error('生成大盘分析报告失败:', error)
+        this.$message.error(error.response?.data?.detail || '请求失败，请检查网络连接或联系管理员')
+        this.marketLoading = false
       })
     }
   }
