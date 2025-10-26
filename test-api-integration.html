@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API集成测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+        }
+        .test-item h3 {
+            margin: 0 0 10px 0;
+            color: #34495e;
+        }
+        .test-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .test-button:hover {
+            background: #2980b9;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 前端API集成测试</h1>
+    <p>此页面用于测试提示词管理和工具管理的API集成功能</p>
+    <p><strong>页面路径：</strong></p>
+    <ul>
+        <li>提示词管理：<code>/prompt-management</code></li>
+        <li>工具管理：<code>/tool-management</code></li>
+    </ul>
+    <p><strong>API请求路径：</strong>所有API请求都使用 <code>/ai-api</code> 前缀</p>
+
+    <!-- 提示词管理API测试 -->
+    <div class="test-section">
+        <h2>📝 提示词管理API测试</h2>
+        
+        <div class="test-item">
+            <h3>获取提示词列表</h3>
+            <button class="test-button" onclick="testPromptsList()">测试 GET /api/prompts/</button>
+            <div id="prompts-list-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>获取分类列表</h3>
+            <button class="test-button" onclick="testPromptsCategories()">测试 GET /api/prompts/categories/list</button>
+            <div id="prompts-categories-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>搜索提示词</h3>
+            <input type="text" id="search-keyword" placeholder="输入搜索关键词" value="分析">
+            <button class="test-button" onclick="testPromptsSearch()">测试 GET /api/prompts/search/</button>
+            <div id="prompts-search-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>创建提示词</h3>
+            <button class="test-button" onclick="testCreatePrompt()">测试 POST /api/prompts/</button>
+            <div id="create-prompt-result" class="test-result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 工具管理API测试 -->
+    <div class="test-section">
+        <h2>🔧 工具管理API测试</h2>
+        
+        <div class="test-item">
+            <h3>获取工具列表</h3>
+            <button class="test-button" onclick="testToolsList()">测试 GET /api/tools/list</button>
+            <div id="tools-list-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>获取工具分类</h3>
+            <button class="test-button" onclick="testToolsCategories()">测试 GET /api/tools/categories</button>
+            <div id="tools-categories-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>获取工具统计</h3>
+            <button class="test-button" onclick="testToolsStatistics()">测试 GET /api/tools/statistics</button>
+            <div id="tools-statistics-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>扫描工具</h3>
+            <button class="test-button" onclick="testToolsScan()">测试 POST /api/tools/scan</button>
+            <div id="tools-scan-result" class="test-result" style="display: none;"></div>
+        </div>
+
+        <div class="test-item">
+            <h3>同步元数据</h3>
+            <button class="test-button" onclick="testToolsSync()">测试 POST /api/tools/sync</button>
+            <div id="tools-sync-result" class="test-result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 基础配置
+        const API_BASE_URL = 'http://localhost:8000'; // 根据实际后端地址调整
+        
+        // 通用请求函数
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(API_BASE_URL + url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 如果需要认证，在这里添加token
+                        // 'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data: data
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // 显示测试结果
+        function showResult(elementId, result) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            
+            if (result.success) {
+                element.className = 'test-result success';
+                element.textContent = `✅ 请求成功 (${result.status})\n\n${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                element.className = 'test-result error';
+                element.textContent = `❌ 请求失败\n\n${result.error || JSON.stringify(result.data, null, 2)}`;
+            }
+        }
+
+        // 提示词管理API测试函数
+        async function testPromptsList() {
+            const result = await makeRequest('/api/prompts/?page=1&page_size=5');
+            showResult('prompts-list-result', result);
+        }
+
+        async function testPromptsCategories() {
+            const result = await makeRequest('/api/prompts/categories/list');
+            showResult('prompts-categories-result', result);
+        }
+
+        async function testPromptsSearch() {
+            const keyword = document.getElementById('search-keyword').value;
+            const result = await makeRequest(`/api/prompts/search/?keyword=${encodeURIComponent(keyword)}&limit=5`);
+            showResult('prompts-search-result', result);
+        }
+
+        async function testCreatePrompt() {
+            const testData = {
+                name: "测试提示词_" + Date.now(),
+                content: "这是一个测试提示词的内容，用于验证API功能。",
+                description: "API测试创建的提示词",
+                category: "测试分类",
+                tags: "测试,API,自动化"
+            };
+            
+            const result = await makeRequest('/api/prompts/', {
+                method: 'POST',
+                body: JSON.stringify(testData)
+            });
+            showResult('create-prompt-result', result);
+        }
+
+        // 工具管理API测试函数
+        async function testToolsList() {
+            const result = await makeRequest('/api/tools/list?page=1&page_size=5');
+            showResult('tools-list-result', result);
+        }
+
+        async function testToolsCategories() {
+            const result = await makeRequest('/api/tools/categories');
+            showResult('tools-categories-result', result);
+        }
+
+        async function testToolsStatistics() {
+            const result = await makeRequest('/api/tools/statistics');
+            showResult('tools-statistics-result', result);
+        }
+
+        async function testToolsScan() {
+            const result = await makeRequest('/api/tools/scan', {
+                method: 'POST',
+                body: JSON.stringify({
+                    auto_register: true
+                })
+            });
+            showResult('tools-scan-result', result);
+        }
+
+        async function testToolsSync() {
+            const result = await makeRequest('/api/tools/sync', {
+                method: 'POST'
+            });
+            showResult('tools-sync-result', result);
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('API集成测试页面已加载');
+            
+            // 显示当前配置
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'test-result info';
+            infoDiv.innerHTML = `ℹ️ 当前API基础地址: ${API_BASE_URL}\n\n如果后端地址不同，请修改脚本中的 API_BASE_URL 变量。`;
+            document.body.insertBefore(infoDiv, document.body.firstChild.nextSibling);
+        });
+    </script>
+</body>
+</html>

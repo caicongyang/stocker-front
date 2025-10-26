@@ -294,7 +294,8 @@
 </template>
 
 <script>
-import request from '../utils/request'
+import axios from 'axios'
+import config from '@/config/config'
 
 export default {
   name: 'ToolDetailModal',
@@ -334,7 +335,7 @@ export default {
       // 加载工具Schema
       this.loading.schema = true
       try {
-        const schemaResponse = await request.get(`/api/tools/${this.tool.name}/schema`)
+        const schemaResponse = await axios.get(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/schema`)
         if (schemaResponse.data.success) {
           this.toolSchema = schemaResponse.data.data
         }
@@ -347,7 +348,7 @@ export default {
       // 加载使用统计
       this.loading.usage = true
       try {
-        const usageResponse = await request.get(`/api/tools/${this.tool.name}/usage`)
+        const usageResponse = await axios.get(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/usage`)
         if (usageResponse.data.success) {
           this.usageStats = usageResponse.data.data
         }
@@ -365,7 +366,7 @@ export default {
     
     async toggleToolStatus() {
       try {
-        const response = await request.put(`/api/tools/${this.tool.name}/status`, {
+        const response = await axios.put(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/status`, {
           is_enabled: !this.tool.is_enabled
         })
         

@@ -257,7 +257,8 @@
 </template>
 
 <script>
-import request from '../utils/request'
+import axios from 'axios'
+import config from '@/config/config'
 
 export default {
   name: 'ToolTestModal',
@@ -298,7 +299,7 @@ export default {
     async loadToolSchema() {
       this.loading.schema = true
       try {
-        const response = await request.get(`/api/tools/${this.tool.name}/schema`)
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/schema`)
         if (response.data.success) {
           this.toolSchema = response.data.data
         }
@@ -455,7 +456,7 @@ export default {
       const startTime = Date.now()
       
       try {
-        const response = await request.post(`/api/tools/${this.tool.name}/test`, validation.params)
+        const response = await axios.post(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/test`, validation.params)
         
         const executionTime = Date.now() - startTime
         this.testProgress = 100

@@ -1,5 +1,7 @@
 <template>
   <div class="tool-management">
+    <SideMenu />
+    <div class="content">
     <div class="header">
       <h1>🔧 工具管理中心</h1>
       <p class="subtitle">管理和配置AI助手的工具集合</p>
@@ -214,6 +216,8 @@
       :tool="selectedTool" 
       @close="selectedTool = null"
       @updated="fetchTools"
+      @test-tool="handleTestTool"
+      @config-tool="handleConfigTool"
     />
 
     <!-- 工具测试弹窗 -->
@@ -253,11 +257,14 @@
         下一页 →
       </button>
     </div>
+    </div>
   </div>
 </template>
 
 <script>
-import request from '../../utils/request'
+import axios from 'axios'
+import config from '@/config/config'
+import SideMenu from '../../components/SideMenu.vue'
 import ToolDetailModal from '../../components/ToolDetailModal.vue'
 import ToolTestModal from '../../components/ToolTestModal.vue'
 import ToolConfigModal from '../../components/ToolConfigModal.vue'
@@ -265,6 +272,7 @@ import ToolConfigModal from '../../components/ToolConfigModal.vue'
 export default {
   name: 'ToolManagement',
   components: {
+    SideMenu,
     ToolDetailModal,
     ToolTestModal,
     ToolConfigModal
@@ -354,7 +362,7 @@ export default {
           status: this.filters.status
         }
         
-        const response = await request.get('/api/tools/list', { params })
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/tools/list`, { params })
         
         if (response.data.success) {
           this.tools = response.data.data.tools
@@ -372,7 +380,7 @@ export default {
     
     async fetchCategories() {
       try {
-        const response = await request.get('/api/tools/categories')
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/tools/categories`)
         if (response.data.success) {
           this.categories = response.data.data
         }
@@ -383,7 +391,7 @@ export default {
     
     async fetchStatistics() {
       try {
-        const response = await request.get('/api/tools/statistics')
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/tools/statistics`)
         if (response.data.success) {
           this.statistics = response.data.data
         }
@@ -398,7 +406,7 @@ export default {
       this.updatingTools.push(tool.name)
       
       try {
-        const response = await request.put(`/api/tools/${tool.name}/status`, {
+        const response = await axios.put(`${config.aiApiBaseUrl}/api/tools/${tool.name}/status`, {
           is_enabled: !tool.is_enabled
         })
         
@@ -420,7 +428,7 @@ export default {
     async scanTools() {
       this.scanning = true
       try {
-        const response = await request.post('/api/tools/scan', {
+        const response = await axios.post(`${config.aiApiBaseUrl}/api/tools/scan`, {
           auto_register: true
         })
         
@@ -442,7 +450,7 @@ export default {
     async syncMetadata() {
       this.syncing = true
       try {
-        const response = await request.post('/api/tools/sync')
+        const response = await axios.post(`${config.aiApiBaseUrl}/api/tools/sync`)
         
         if (response.data.success) {
           this.$message.success('元数据同步完成')
@@ -484,7 +492,7 @@ export default {
       
       try {
         const promises = this.selectedTools.map(toolName =>
-          request.put(`/api/tools/${toolName}/status`, { is_enabled: isEnabled })
+          axios.put(`${config.aiApiBaseUrl}/api/tools/${toolName}/status`, { is_enabled: isEnabled })
         )
         
         await Promise.all(promises)
@@ -526,6 +534,16 @@ export default {
     },
     
     configTool(tool) {
+      this.configuringTool = tool
+    },
+    
+    handleTestTool(tool) {
+      this.selectedTool = null
+      this.testingTool = tool
+    },
+    
+    handleConfigTool(tool) {
+      this.selectedTool = null
       this.configuringTool = tool
     },
     
@@ -580,7 +598,15 @@ export default {
 
 <style scoped>
 .tool-management {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.content {
+  flex: 1;
   padding: 20px;
+  overflow-y: auto;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -1028,7 +1054,7 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
-  .tool-management {
+  .content {
     padding: 15px;
   }
   

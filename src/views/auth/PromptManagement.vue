@@ -1,5 +1,7 @@
 <template>
   <div class="prompt-management">
+    <SideMenu />
+    <div class="content">
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <span class="card-title">
@@ -17,16 +19,66 @@
         </el-button>
       </div>
 
+      <!-- 统计信息卡片 -->
+      <div class="stats-section">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="el-icon-document-copy"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ pagination.total }}</div>
+                <div class="stat-label">总提示词</div>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="el-icon-folder-opened"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ categories.length }}</div>
+                <div class="stat-label">分类数量</div>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="el-icon-time"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ recentlyUpdated }}</div>
+                <div class="stat-label">最近更新</div>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="6">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="el-icon-star-on"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ favoriteCount }}</div>
+                <div class="stat-label">常用提示词</div>
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+
       <!-- 搜索和筛选 -->
       <div class="filter-section">
         <el-row :gutter="20">
           <el-col :span="8">
             <el-input
               v-model="searchForm.keyword"
-              placeholder="搜索提示词名称或描述"
+              placeholder="搜索提示词名称、描述或内容"
               prefix-icon="el-icon-search"
               clearable
-              @input="handleSearch"
+              @input="debounceSearch"
             />
           </el-col>
           <el-col :span="6">
@@ -42,6 +94,17 @@
                 :label="category"
                 :value="category"
               />
+            </el-select>
+          </el-col>
+          <el-col :span="6">
+            <el-select
+              v-model="searchForm.sortBy"
+              placeholder="排序方式"
+              @change="handleSearch"
+            >
+              <el-option label="最新创建" value="created_desc" />
+              <el-option label="最新更新" value="updated_desc" />
+              <el-option label="名称排序" value="name_asc" />
             </el-select>
           </el-col>
           <el-col :span="4">
@@ -225,15 +288,21 @@
         </el-button>
       </div>
     </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
 import { marked } from 'marked'
-import request from '@/utils/request'
+import axios from 'axios'
+import config from '@/config/config'
+import SideMenu from '../../components/SideMenu.vue'
 
 export default {
   name: 'PromptManagement',
+  components: {
+    SideMenu
+  },
   data() {
     return {
       loading: false,
@@ -246,8 +315,14 @@ export default {
       // 搜索表单
       searchForm: {
         keyword: '',
-        category: ''
+        category: '',
+        sortBy: 'updated_desc'
       },
+      
+      // 统计数据
+      recentlyUpdated: 0,
+      favoriteCount: 0,
+      searchTimeout: null,
       
       // 分页信息
       pagination: {
@@ -311,7 +386,7 @@ export default {
           params.category = this.searchForm.category
         }
         
-        const response = await request.get('/api/prompts/', { params })
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/prompts/`, { params })
         
         if (response.data.status === 'success') {
           const data = response.data.data
@@ -319,6 +394,9 @@ export default {
           this.pagination.total = data.total
           this.pagination.page = data.page
           this.pagination.pageSize = data.page_size
+          
+          // 计算统计数据
+          this.calculateStats()
         } else {
           this.$message.error(response.data.message)
         }
@@ -332,7 +410,7 @@ export default {
     // 加载分类列表
     async loadCategories() {
       try {
-        const response = await request.get('/api/prompts/categories/list')
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/prompts/categories/list`)
         if (response.data.status === 'success') {
           this.categories = response.data.data
         }
@@ -341,10 +419,34 @@ export default {
       }
     },
     
+    // 防抖搜索
+    debounceSearch() {
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(() => {
+        this.handleSearch()
+      }, 500)
+    },
+    
     // 搜索处理
     handleSearch() {
       this.pagination.page = 1
       this.loadPromptList()
+    },
+    
+    // 计算统计数据
+    calculateStats() {
+      // 计算最近7天更新的提示词数量
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      
+      this.recentlyUpdated = this.promptList.filter(prompt => {
+        const updatedAt = new Date(prompt.updated_at)
+        return updatedAt >= sevenDaysAgo
+      }).length
+      
+      // 这里可以根据实际需求计算常用提示词数量
+      // 暂时使用总数的30%作为示例
+      this.favoriteCount = Math.ceil(this.pagination.total * 0.3)
     },
     
     // 分页处理
@@ -367,7 +469,7 @@ export default {
     // 查看提示词详情
     async viewPromptDetail(promptId) {
       try {
-        const response = await request.get(`/api/prompts/${promptId}`)
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/prompts/${promptId}`)
         if (response.data.status === 'success') {
           this.currentPrompt = response.data.data
           this.showDetailDialog = true
@@ -403,7 +505,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          const response = await request.delete(`/api/prompts/${row.id}`)
+          const response = await axios.delete(`${config.aiApiBaseUrl}/api/prompts/${row.id}`)
           if (response.data.status === 'success') {
             this.$message.success('删除成功')
             this.loadPromptList()
@@ -434,9 +536,9 @@ export default {
             }
             
             if (this.dialogType === 'create') {
-              response = await request.post('/api/prompts/', formData)
+              response = await axios.post(`${config.aiApiBaseUrl}/api/prompts/`, formData)
             } else {
-              response = await request.put(`/api/prompts/${this.promptForm.id}`, formData)
+              response = await axios.put(`${config.aiApiBaseUrl}/api/prompts/${this.promptForm.id}`, formData)
             }
             
             if (response.data.status === 'success') {
@@ -509,12 +611,88 @@ export default {
 
 <style scoped>
 .prompt-management {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.content {
+  flex: 1;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .card-title {
   font-size: 18px;
   font-weight: bold;
+}
+
+.stats-section {
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.stat-card:nth-child(2n) {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-shadow: 0 4px 12px rgba(240, 147, 251, 0.3);
+}
+
+.stat-card:nth-child(2n):hover {
+  box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+}
+
+.stat-card:nth-child(3n) {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+}
+
+.stat-card:nth-child(3n):hover {
+  box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+}
+
+.stat-card:nth-child(4n) {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  box-shadow: 0 4px 12px rgba(67, 233, 123, 0.3);
+}
+
+.stat-card:nth-child(4n):hover {
+  box-shadow: 0 8px 20px rgba(67, 233, 123, 0.4);
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  margin-right: 15px;
+  opacity: 0.8;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
 }
 
 .filter-section {

@@ -445,7 +445,8 @@
 </template>
 
 <script>
-import request from '../utils/request'
+import axios from 'axios'
+import config from '@/config/config'
 
 export default {
   name: 'ToolConfigModal',
@@ -506,7 +507,7 @@ export default {
     async loadToolSchema() {
       this.loading.schema = true
       try {
-        const response = await request.get(`/api/tools/${this.tool.name}/schema`)
+        const response = await axios.get(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/schema`)
         if (response.data.success) {
           this.toolSchema = response.data.data
         }
@@ -655,12 +656,12 @@ export default {
         // 分别更新状态和配置
         await Promise.all([
           // 更新工具状态
-          request.put(`/api/tools/${this.tool.name}/status`, {
+          axios.put(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/status`, {
             is_enabled: fullConfig.is_enabled
           }),
           
           // 更新工具配置
-          request.put(`/api/tools/${this.tool.name}/config`, fullConfig)
+          axios.put(`${config.aiApiBaseUrl}/api/tools/${this.tool.name}/config`, fullConfig)
         ])
         
         this.hasChanges = false
