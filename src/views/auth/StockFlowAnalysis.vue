@@ -88,7 +88,7 @@
           </el-table-column>
           <el-table-column
             label="操作"
-            width="80"
+            width="180"
             align="center"
             fixed="right">
             <template slot-scope="scope">
@@ -96,6 +96,13 @@
                 type="text" 
                 @click.stop="viewReport(scope.row)">
                 查看
+              </el-button>
+              <el-button 
+                type="text" 
+                style="color: #67C23A"
+                @click.stop="pushToWechat(scope.row)"
+                :loading="pushingReports.includes(scope.row.report_id)">
+                推送到公众号
               </el-button>
             </template>
           </el-table-column>
@@ -182,7 +189,8 @@ export default {
         total: 0
       },
       dialogVisible: false,
-      currentReport: null
+      currentReport: null,
+      pushingReports: [] // 正在推送的报告ID列表
     }
   },
   computed: {
@@ -359,6 +367,52 @@ export default {
         this.$message.error(error.response?.data?.detail || '请求失败，请检查网络连接或联系管理员')
         this.marketLoading = false
       })
+    },
+    
+    // 推送报告到微信公众号
+    async pushToWechat(report) {
+      // 确认对话框
+      const confirmResult = await this.$confirm(
+        `确定要将报告"${report.title}"推送到微信公众号吗？`,
+        '推送确认',
+        {
+          confirmButtonText: '确定推送',
+          cancelButtonText: '取消',
+          type: 'info'
+        }
+      ).catch(() => false)
+      
+      if (!confirmResult) {
+        return
+      }
+      
+      // 添加到推送中列表
+      this.pushingReports.push(report.report_id)
+      
+      try {
+        const response = await axios.post(
+          `${config.aiApiBaseUrl}/push-to-wechat`,
+          {
+            report_id: report.report_id
+          }
+        )
+        
+        if (response.data && response.data.message) {
+          this.$message.success(response.data.message)
+        } else {
+          this.$message.success('报告推送请求已提交，请稍后查看推送结果')
+        }
+      } catch (error) {
+        console.error('推送报告失败:', error)
+        const errorMessage = error.response?.data?.detail || '推送失败，请检查网络连接或联系管理员'
+        this.$message.error(errorMessage)
+      } finally {
+        // 从推送中列表移除
+        const index = this.pushingReports.indexOf(report.report_id)
+        if (index > -1) {
+          this.pushingReports.splice(index, 1)
+        }
+      }
     }
   }
 }
