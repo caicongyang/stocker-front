@@ -420,26 +420,8 @@ export default {
           googleContainer.style.display = 'none'
         }
       })
-    }
-  },
-  
-  created() {
-    // 如果已经登录，直接跳转到首页
-    if (this.isAuthenticated) {
-      this.$router.push('/dashboard')
-    }
-  },
-  
-  mounted() {
-    // 调试：显示配置信息
-    console.log('项目配置:', config)
-    console.log('Google客户端ID:', config.googleClientId)
+    },
     
-    // 加载Google登录脚本
-    this.loadGoogleScript()
-  },
-  
-  methods: {
     // 加载Google脚本
     loadGoogleScript() {
       if (!window.google) {
@@ -475,7 +457,24 @@ export default {
         console.log('Google脚本已存在，直接初始化')
         this.initGoogleSignIn()
       }
-    },
+    }
+  },
+  
+  created() {
+    // 如果已经登录，直接跳转到首页
+    if (this.isAuthenticated) {
+      this.$router.push('/dashboard')
+    }
+  },
+  
+  mounted() {
+    // 调试：显示配置信息
+    console.log('项目配置:', config)
+    console.log('Google客户端ID:', config.googleClientId)
+    
+    // 加载Google登录脚本
+    this.loadGoogleScript()
+  }
 }
 </script>
 
