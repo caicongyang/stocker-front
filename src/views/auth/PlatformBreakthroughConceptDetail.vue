@@ -170,7 +170,7 @@ export default {
           this.stockList = response.data.data.map(item => ({
             id: item.id,
             stockCode: item.stockCode,
-            stockName: this.getStockName(item.stockCode), // 需要从其他地方获取股票名称
+            stockName: item.stockName,
             close: Number(item.close),
             open: Number(item.open),
             high: Number(item.high),
@@ -200,11 +200,6 @@ export default {
       }
     },
     
-    getStockName(stockCode) {
-      // 这里可以从本地缓存或其他API获取股票名称
-      // 暂时返回股票代码
-      return stockCode
-    },
     
     formatDisplayDate(dateStr) {
       if (!dateStr) return ''
