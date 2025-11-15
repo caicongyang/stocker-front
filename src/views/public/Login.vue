@@ -364,30 +364,62 @@ export default {
       if (!googleClientId || googleClientId === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
         console.warn('Google客户端ID未配置，Google登录功能将不可用')
         // 隐藏Google登录区域
+        this.$nextTick(() => {
+          const googleContainer = document.querySelector('.social-login')
+          if (googleContainer) {
+            googleContainer.style.display = 'none'
+          }
+        })
+        return
+      }
+      
+      if (window.google && window.google.accounts) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: this.handleGoogleSignIn
+          })
+          
+          // 确保DOM元素存在后再渲染按钮
+          this.$nextTick(() => {
+            const buttonContainer = document.getElementById('google-signin-button')
+            if (buttonContainer) {
+              window.google.accounts.id.renderButton(
+                buttonContainer,
+                {
+                  theme: 'outline',
+                  size: 'large',
+                  text: 'signin_with',
+                  width: 300,
+                  height: 50
+                }
+              )
+              console.log('Google登录按钮渲染成功')
+            } else {
+              console.error('未找到Google登录按钮容器元素')
+            }
+          })
+        } catch (error) {
+          console.error('Google登录初始化失败:', error)
+          this.hideGoogleLogin()
+        }
+      } else {
+        console.warn('Google API未加载完成')
+        // 延迟重试
+        setTimeout(() => {
+          this.initGoogleSignIn()
+        }, 1000)
+      }
+    },
+    
+    // 隐藏Google登录区域
+    hideGoogleLogin() {
+      this.$nextTick(() => {
         const googleContainer = document.querySelector('.social-login')
         if (googleContainer) {
           googleContainer.style.display = 'none'
         }
-        return
-      }
-      
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: this.handleGoogleSignIn
-        })
-        
-        window.google.accounts.id.renderButton(
-          document.getElementById('google-signin-button'),
-          {
-            theme: 'outline',
-            size: 'large',
-            text: 'signin_with',
-            width: 300,  // 使用数字而不是百分比
-            height: 50
-          }
-        )
-      }
+      })
     }
   },
   
@@ -404,25 +436,46 @@ export default {
     console.log('Google客户端ID:', config.googleClientId)
     
     // 加载Google登录脚本
-    if (!window.google) {
-      const script = document.createElement('script')
-      script.src = 'https://accounts.google.com/gsi/client'
-      script.onload = () => {
+    this.loadGoogleScript()
+  },
+  
+  methods: {
+    // 加载Google脚本
+    loadGoogleScript() {
+      if (!window.google) {
+        const script = document.createElement('script')
+        script.src = 'https://accounts.google.com/gsi/client'
+        script.async = true
+        script.defer = true
+        
+        script.onload = () => {
+          console.log('Google脚本加载成功')
+          // 延迟一点时间确保脚本完全初始化
+          setTimeout(() => {
+            this.initGoogleSignIn()
+          }, 100)
+        }
+        
+        script.onerror = (error) => {
+          console.error('Google登录脚本加载失败:', error)
+          console.warn('可能的原因：网络问题、防火墙阻止、或Google服务不可用')
+          this.hideGoogleLogin()
+        }
+        
+        // 设置超时处理
+        setTimeout(() => {
+          if (!window.google) {
+            console.error('Google脚本加载超时')
+            this.hideGoogleLogin()
+          }
+        }, 10000) // 10秒超时
+        
+        document.head.appendChild(script)
+      } else {
+        console.log('Google脚本已存在，直接初始化')
         this.initGoogleSignIn()
       }
-      script.onerror = () => {
-        console.error('Google登录脚本加载失败')
-        // 隐藏Google登录按钮容器
-        const googleContainer = document.querySelector('.google-signin-container')
-        if (googleContainer) {
-          googleContainer.style.display = 'none'
-        }
-      }
-      document.head.appendChild(script)
-    } else {
-      this.initGoogleSignIn()
-    }
-  }
+    },
 }
 </script>
 
