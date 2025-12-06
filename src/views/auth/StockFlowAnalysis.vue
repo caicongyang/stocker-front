@@ -88,7 +88,7 @@
           </el-table-column>
           <el-table-column
             label="操作"
-            width="180"
+            width="240"
             align="center"
             fixed="right">
             <template slot-scope="scope">
@@ -103,6 +103,13 @@
                 @click.stop="pushToWechat(scope.row)"
                 :loading="pushingReports.includes(scope.row.report_id)">
                 推送到公众号
+              </el-button>
+              <el-button 
+                type="text" 
+                style="color: #F56C6C"
+                @click.stop="deleteReport(scope.row)"
+                :loading="deletingReports.includes(scope.row.report_id)">
+                删除
               </el-button>
             </template>
           </el-table-column>
@@ -190,7 +197,8 @@ export default {
       },
       dialogVisible: false,
       currentReport: null,
-      pushingReports: [] // 正在推送的报告ID列表
+      pushingReports: [], // 正在推送的报告ID列表
+      deletingReports: [] // 正在删除的报告ID列表
     }
   },
   computed: {
@@ -411,6 +419,51 @@ export default {
         const index = this.pushingReports.indexOf(report.report_id)
         if (index > -1) {
           this.pushingReports.splice(index, 1)
+        }
+      }
+    },
+    
+    // 删除报告
+    async deleteReport(report) {
+      // 确认对话框
+      const confirmResult = await this.$confirm(
+        `确定要删除报告"${report.title}"吗？删除后将无法恢复！`,
+        '删除确认',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).catch(() => false)
+      
+      if (!confirmResult) {
+        return
+      }
+      
+      // 添加到删除中列表
+      this.deletingReports.push(report.report_id)
+      
+      try {
+        const response = await axios.delete(
+          `${config.aiApiBaseUrl}/report/${report.report_id}`
+        )
+        
+        if (response.data && response.data.success) {
+          this.$message.success(response.data.message)
+          // 刷新列表
+          this.fetchReportsList()
+        } else {
+          this.$message.error('删除失败，请稍后再试')
+        }
+      } catch (error) {
+        console.error('删除报告失败:', error)
+        const errorMessage = error.response?.data?.detail || '删除失败，请检查网络连接或联系管理员'
+        this.$message.error(errorMessage)
+      } finally {
+        // 从删除中列表移除
+        const index = this.deletingReports.indexOf(report.report_id)
+        if (index > -1) {
+          this.deletingReports.splice(index, 1)
         }
       }
     }

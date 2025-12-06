@@ -170,9 +170,6 @@ export default {
     }
   },
   created() {
-    // 修改组件创建时的行为，不自动选择第一个会话，也不自动创建新会话
-    this.getConversationsList();
-    
     // 清空会话ID，准备开始新会话
     this.conversationId = null;
     
@@ -180,8 +177,23 @@ export default {
     const welcomeMessage = '你好！我是StockBot，您的智能股票分析助手。请提供您想查询的股票代码或相关市场数据，我将为您提供专业的分析和建议。'
     this.addMessage('ai', welcomeMessage);
   },
-  mounted() {
+  async mounted() {
     this.scrollToBottom();
+    
+    // 确保用户已登录后再获取会话列表
+    if (this.$store.getters['auth/isAuthenticated']) {
+      await this.getConversationsList();
+    } else {
+      // 如果用户未登录，监听登录状态变化
+      this.$store.watch(
+        (state) => state.auth.isAuthenticated,
+        (isAuthenticated) => {
+          if (isAuthenticated) {
+            this.getConversationsList();
+          }
+        }
+      );
+    }
   },
   methods: {
     // 新增一个只获取会话列表但不自动选择会话或创建会话的方法
@@ -462,75 +474,135 @@ export default {
     
     sendMessageToConversation(content) {
       try {
-        // 在指定会话中发送消息
-        console.log('发送消息到会话:', this.conversationId, '内容:', content);
+        // 在指定会话中发送消息（流式）
+        console.log('发送消息到会话（流式）:', this.conversationId, '内容:', content);
         
-        // 创建请求体，适配API需要的格式
+        // 使用 EventSource 进行流式通信
         const requestData = { message: content };
-        console.log('请求体:', requestData);
         
-        axios.post(
-          `${config.aiApiBaseUrl}/conversations/${this.conversationId}/messages`,
-          requestData,  // 使用message字段
-          {
-            headers: {
-              'accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000
-          }
-        )
+        // 创建一个临时的AI消息用于显示流式内容
+        const streamingMessageIndex = this.messages.length;
+        this.addMessage('ai', '正在思考...');
+        
+        // 存储工具调用信息
+        let toolCalls = [];
+        let finalContent = '';
+        
+        // 获取认证token
+        const token = this.$store.getters['auth/token'] || localStorage.getItem('auth_token');
+        
+        // 使用fetch进行POST请求以支持SSE
+        const headers = {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        };
+        
+        // 添加认证token
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        fetch(`${config.aiApiBaseUrl}/conversations/${this.conversationId}/messages/stream`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(requestData)
+        })
         .then(response => {
-          console.log('发送消息响应:', response.data)
-          
-          // 从响应中提取AI回复内容
-          if (response.data) {
-            let aiResponseMessage = '';
-            console.log('API响应数据结构:', response.data);
-            
-            // 尝试使用各种可能的字段名获取响应内容
-            if (response.data.response) {
-              // 优先使用response字段
-              aiResponseMessage = response.data.response;
-            } else if (response.data.content) {
-              // 其次尝试content字段
-              aiResponseMessage = response.data.content;
-            } else if (typeof response.data === 'string') {
-              // 如果响应直接是字符串
-              aiResponseMessage = response.data;
-            } else if (response.data.message) {
-              // 较低优先级检查message字段
-              aiResponseMessage = response.data.message;
-            } else if (response.data.data && response.data.data.response) {
-              // 嵌套格式下的response
-              aiResponseMessage = response.data.data.response;
-            } else if (response.data.data && response.data.data.content) {
-              // 嵌套格式下的content
-              aiResponseMessage = response.data.data.content;
-            } else if (response.data.data && response.data.data.message) {
-              // 嵌套格式下的message
-              aiResponseMessage = response.data.data.message;
-            } else if (response.data.text) {
-              // 其他可能的字段
-              aiResponseMessage = response.data.text;
-            } else {
-              // 如果无法识别格式，则显示响应状态或完整JSON
-              aiResponseMessage = response.data.status === 'success' 
-                ? '操作成功，但未找到回复内容'
-                : '收到回复，但无法识别格式: ' + JSON.stringify(response.data);
-            }
-            
-            // 将AI回复添加到聊天记录
-            this.addMessage('ai', aiResponseMessage);
-          } else {
-            this.handleAPIError('获取到空响应，请重试。');
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
+          
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          
+          const readStream = () => {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                console.log('流式响应完成');
+                this.loading = false;
+                this.$nextTick(() => {
+                  this.scrollToBottom();
+                });
+                return;
+              }
+              
+              // 解码数据
+              const chunk = decoder.decode(value, { stream: true });
+              const lines = chunk.split('\n');
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const eventData = JSON.parse(line.substring(6));
+                    console.log('收到事件:', eventData);
+                    
+                    // 处理不同类型的事件
+                    if (eventData.type === 'status') {
+                      // 更新状态消息
+                      this.messages[streamingMessageIndex].content = `⏳ ${eventData.message}`;
+                    } else if (eventData.type === 'tool_call') {
+                      // 记录工具调用
+                      toolCalls.push({
+                        name: eventData.tool_name,
+                        args: eventData.tool_args
+                      });
+                      this.messages[streamingMessageIndex].content = `🛠️ ${eventData.message}`;
+                    } else if (eventData.type === 'tool_summary') {
+                      // 工具调用摘要
+                      const toolsList = eventData.tools_used.join(', ');
+                      this.messages[streamingMessageIndex].content = `✅ 已调用工具: ${toolsList}`;
+                    } else if (eventData.type === 'message') {
+                      // 最终消息
+                      finalContent = eventData.content;
+                      
+                      // 构建完整的消息内容，包含工具调用信息
+                      let fullContent = '';
+                      if (toolCalls.length > 0) {
+                        fullContent += '📊 **使用的工具:**\n';
+                        toolCalls.forEach((tc, idx) => {
+                          fullContent += `${idx + 1}. ${tc.name}\n`;
+                        });
+                        fullContent += '\n---\n\n';
+                      }
+                      fullContent += finalContent;
+                      
+                      this.messages[streamingMessageIndex].content = fullContent;
+                    } else if (eventData.type === 'complete') {
+                      // 处理完成
+                      console.log('消息处理完成');
+                      this.loading = false;
+                    } else if (eventData.type === 'error') {
+                      // 错误处理
+                      this.messages[streamingMessageIndex].content = `❌ ${eventData.message}`;
+                      this.loading = false;
+                    }
+                    
+                    // 滚动到底部
+                    this.$nextTick(() => {
+                      this.scrollToBottom();
+                    });
+                  } catch (e) {
+                    console.error('解析事件数据失败:', e, line);
+                  }
+                }
+              }
+              
+              // 继续读取
+              readStream();
+            }).catch(error => {
+              console.error('读取流失败:', error);
+              this.messages[streamingMessageIndex].content = `❌ 读取响应失败: ${error.message}`;
+              this.loading = false;
+            });
+          };
+          
+          readStream();
         })
         .catch(error => {
           console.error('发送消息失败:', error);
           
           // 如果是会话过期，尝试重新创建会话
-          if (error.response && (error.response.status === 404 || error.response.status === 400)) {
+          if (error.message && error.message.includes('404')) {
             console.log('会话可能已过期，重新创建会话');
             this.$message.warning('会话已过期，正在重新创建...');
             this.conversationId = null;
@@ -538,10 +610,10 @@ export default {
             return;
           }
           
-          this.handleAPIError('发送消息失败，请重试。');
+          this.messages[streamingMessageIndex].content = `❌ 发送失败: ${error.message}`;
+          this.loading = false;
         })
         .finally(() => {
-          this.loading = false;
           this.$nextTick(() => {
             this.scrollToBottom();
           });
