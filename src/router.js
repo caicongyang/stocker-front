@@ -23,6 +23,8 @@ import StockFlowAnalysis from './views/auth/StockFlowAnalysis.vue'
 import Payment from './views/auth/Payment.vue'
 import PromptManagement from './views/auth/PromptManagement.vue'
 import ToolManagement from './views/auth/ToolManagement.vue'
+import AgentManagement from './views/auth/AgentManagement.vue'
+import ConversationRecords from './views/auth/ConversationRecords.vue'
 import PlatformBreakthroughConcept from './views/auth/PlatformBreakthroughConcept.vue'
 import PlatformBreakthroughConceptDetail from './views/auth/PlatformBreakthroughConceptDetail.vue'
 import HigherConceptList from './views/auth/HigherConceptList.vue'
@@ -144,6 +146,18 @@ const routes = [
     path: '/tool-management',
     name: 'ToolManagement',
     component: ToolManagement,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/agent-management',
+    name: 'AgentManagement',
+    component: AgentManagement,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/conversation-records',
+    name: 'ConversationRecords',
+    component: ConversationRecords,
     beforeEnter: requireAuth
   },
   {

@@ -55,6 +55,14 @@
         <i class="el-icon-setting"></i>
         <span>工具管理</span>
       </el-menu-item>
+      <el-menu-item index="12">
+        <i class="el-icon-user"></i>
+        <span>Agent 管理</span>
+      </el-menu-item>
+      <el-menu-item index="13">
+        <i class="el-icon-tickets"></i>
+        <span>对话记录</span>
+      </el-menu-item>
     </el-menu>
     
     <div class="user-section">
@@ -140,6 +148,12 @@ export default {
         case '/higher-concept-list':
           this.activeMenu = '11'
           break
+        case '/agent-management':
+          this.activeMenu = '12'
+          break
+        case '/conversation-records':
+          this.activeMenu = '13'
+          break
       }
     },
     handleMenuSelect(index) {
@@ -154,6 +168,8 @@ export default {
                   index === '9' ? '/tool-management' :
                   index === '10' ? '/platform-breakthrough-concept' :
                   index === '11' ? '/higher-concept-list' :
+                  index === '12' ? '/agent-management' :
+                  index === '13' ? '/conversation-records' :
                   null
                   
       if (path && this.$route.path !== path) {
