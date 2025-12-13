@@ -716,9 +716,9 @@ export default {
     
     // 查看会话
     viewConversation(conversation) {
-      // 跳转到 AI 聊天页面并加载该会话
+      // 跳转到 Agent 专用聊天页面并加载该会话
       this.$router.push({
-        path: '/ai-chatbox',
+        path: '/agent-chatbox',
         query: {
           conversation_id: conversation.id,
           agent_id: this.currentAgent.id
@@ -744,8 +744,9 @@ export default {
     
     // 与 Agent 对话
     chatWithAgent(agent) {
+      // 跳转到 Agent 专用聊天页面
       this.$router.push({
-        path: '/ai-chatbox',
+        path: '/agent-chatbox',
         query: {
           agent_id: agent.id
         }

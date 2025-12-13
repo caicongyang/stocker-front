@@ -19,6 +19,7 @@ import ConceptDetail from './views/auth/ConceptDetail.vue'
 import LimitUpConceptDetail from './views/auth/LimitUpConceptDetail.vue'
 import TradingLogList from './views/auth/TradingLogList.vue'
 import AIChatbox from './views/auth/AIChatbox.vue'
+import AgentChatbox from './views/auth/AgentChatbox.vue'
 import StockFlowAnalysis from './views/auth/StockFlowAnalysis.vue'
 import Payment from './views/auth/Payment.vue'
 import PromptManagement from './views/auth/PromptManagement.vue'
@@ -92,6 +93,12 @@ const routes = [
     path: '/ai-chatbox',
     name: 'AIChatbox',
     component: AIChatbox,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/agent-chatbox',
+    name: 'AgentChatbox',
+    component: AgentChatbox,
     beforeEnter: requireAuth
   },
   {
