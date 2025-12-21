@@ -43,6 +43,10 @@
         <i class="el-icon-chat-dot-square"></i>
         <span>AI 助手</span>
       </el-menu-item>
+      <el-menu-item index="14">
+        <i class="el-icon-chat-line-round"></i>
+        <span>Agent 对话</span>
+      </el-menu-item>
       <el-menu-item index="7">
         <i class="el-icon-money"></i>
         <span>资金流水分析</span>
@@ -154,6 +158,9 @@ export default {
         case '/conversation-records':
           this.activeMenu = '13'
           break
+        case '/agent-chatbox':
+          this.activeMenu = '14'
+          break
       }
     },
     handleMenuSelect(index) {
@@ -170,6 +177,7 @@ export default {
                   index === '11' ? '/higher-concept-list' :
                   index === '12' ? '/agent-management' :
                   index === '13' ? '/conversation-records' :
+                  index === '14' ? '/agent-chatbox' :
                   null
                   
       if (path && this.$route.path !== path) {

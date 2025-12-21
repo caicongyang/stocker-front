@@ -26,10 +26,18 @@
               </el-select>
             </div>
             <div class="agent-info" v-if="currentAgent">
-              <el-avatar :size="32" icon="el-icon-user"></el-avatar>
+              <el-avatar :size="40" icon="el-icon-user" class="agent-avatar"></el-avatar>
               <div class="agent-details">
-                <h2>{{ currentAgent.name }}</h2>
+                <div class="agent-title-row">
+                  <h2>{{ currentAgent.name }}</h2>
+                  <el-tag v-if="currentAgent.reasoning_mode" type="warning" size="mini">推理模式</el-tag>
+                  <el-tag type="info" size="mini">{{ currentAgent.model }}</el-tag>
+                </div>
                 <span class="agent-desc">{{ currentAgent.description || '专属AI助手' }}</span>
+                <div class="agent-meta-info">
+                  <span class="meta-tag"><i class="el-icon-setting"></i> 温度: {{ currentAgent.temperature }}</span>
+                  <span class="meta-tag"><i class="el-icon-coin"></i> 工具: {{ currentAgent.tool_ids ? currentAgent.tool_ids.length : 0 }} 个</span>
+                </div>
               </div>
             </div>
           </div>
@@ -450,8 +458,11 @@ export default {
         const streamingMessageIndex = this.messages.length;
         this.addMessage('ai', '正在思考...');
         
-        let toolCalls = [];
+        // 存储各阶段内容
+        let taskPlan = '';
+        let toolCallsInfo = '';
         let finalContent = '';
+        let statusMessage = '';
         
         const token = this.$store.getters['auth/token'] || localStorage.getItem('auth_token');
         
@@ -463,6 +474,33 @@ export default {
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
+        
+        // 构建完整消息内容的辅助函数
+        const buildFullMessage = () => {
+          let fullMessage = '';
+          
+          // 1. 状态消息（如果有）
+          if (statusMessage) {
+            fullMessage += `${statusMessage}\n\n`;
+          }
+          
+          // 2. 任务规划
+          if (taskPlan) {
+            fullMessage += `## 📋 任务规划\n\n${taskPlan}\n\n`;
+          }
+          
+          // 3. 工具调用信息
+          if (toolCallsInfo) {
+            fullMessage += `## 🔧 工具调用\n\n${toolCallsInfo}\n\n`;
+          }
+          
+          // 4. 最终回复
+          if (finalContent) {
+            fullMessage += `## 💬 回复\n\n${finalContent}`;
+          }
+          
+          return fullMessage || '正在思考...';
+        };
         
         // 使用Agent专用的流式消息接口
         fetch(`${config.aiApiBaseUrl}/agents/${this.agentId}/conversations/${this.conversationId}/messages/stream`, {
@@ -498,35 +536,46 @@ export default {
                     const eventData = JSON.parse(line.substring(6));
                     console.log('收到Agent事件:', eventData);
                     
+                    // 处理不同类型的事件
                     if (eventData.type === 'status') {
-                      this.messages[streamingMessageIndex].content = `⏳ ${eventData.message}`;
-                    } else if (eventData.type === 'tool_call') {
-                      toolCalls.push({
-                        name: eventData.tool_name,
-                        args: eventData.tool_args
+                      // 状态更新
+                      statusMessage = eventData.message;
+                      this.messages[streamingMessageIndex].content = buildFullMessage();
+                      
+                    } else if (eventData.type === 'task_plan') {
+                      // 任务规划完成
+                      taskPlan = eventData.content;
+                      statusMessage = eventData.message;
+                      this.messages[streamingMessageIndex].content = buildFullMessage();
+                      
+                    } else if (eventData.type === 'tool_calls') {
+                      // 工具调用信息
+                      const tools = eventData.tools || [];
+                      toolCallsInfo = `已调用 ${eventData.count} 个工具：\n`;
+                      tools.forEach((tool, idx) => {
+                        toolCallsInfo += `${idx + 1}. **${tool.name}**\n`;
+                        if (tool.args && Object.keys(tool.args).length > 0) {
+                          toolCallsInfo += `   参数: ${JSON.stringify(tool.args, null, 2)}\n`;
+                        }
                       });
-                      this.messages[streamingMessageIndex].content = `🛠️ ${eventData.message}`;
-                    } else if (eventData.type === 'tool_summary') {
-                      const toolsList = eventData.tools_used.join(', ');
-                      this.messages[streamingMessageIndex].content = `✅ 已调用工具: ${toolsList}`;
-                    } else if (eventData.type === 'message' || eventData.type === 'content') {
+                      statusMessage = eventData.message;
+                      this.messages[streamingMessageIndex].content = buildFullMessage();
+                      
+                    } else if (eventData.type === 'content') {
+                      // 最终回复内容（流式更新）
                       finalContent = eventData.content;
+                      statusMessage = '';  // 清空状态消息
+                      this.messages[streamingMessageIndex].content = buildFullMessage();
                       
-                      let fullContent = '';
-                      if (toolCalls.length > 0) {
-                        fullContent += '📊 **使用的工具:**\n';
-                        toolCalls.forEach((tc, idx) => {
-                          fullContent += `${idx + 1}. ${tc.name}\n`;
-                        });
-                        fullContent += '\n---\n\n';
-                      }
-                      fullContent += finalContent;
-                      
-                      this.messages[streamingMessageIndex].content = fullContent;
                     } else if (eventData.type === 'complete') {
+                      // 完成
                       console.log('Agent消息处理完成');
+                      statusMessage = '';  // 清空状态消息
+                      this.messages[streamingMessageIndex].content = buildFullMessage();
                       this.loading = false;
+                      
                     } else if (eventData.type === 'error') {
+                      // 错误
                       this.messages[streamingMessageIndex].content = `❌ ${eventData.message}`;
                       this.loading = false;
                     }
@@ -634,7 +683,16 @@ export default {
         }
       }
       
+      // 处理标题（## 开头的行）
+      content = content.replace(/^## (.+)$/gm, '<h3 class="message-section-title">$1</h3>');
+      
+      // 处理代码块
       content = content.replace(/```([\s\S]*?)```/g, '<pre class="code-block">$1</pre>');
+      
+      // 处理粗体
+      content = content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      
+      // 处理换行
       content = content.replace(/\n/g, '<br>');
       
       return content;
@@ -779,6 +837,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex: 1;
+  min-width: 0;
 }
 
 .agent-selector {
@@ -799,19 +859,63 @@ export default {
 
 .agent-info {
   display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border-radius: 8px;
+  flex: 1;
+  max-width: 600px;
+}
+
+.agent-avatar {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.agent-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-title-row {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .agent-details h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   color: #303133;
+  font-weight: 600;
 }
 
 .agent-desc {
+  display: block;
+  font-size: 13px;
+  color: #606266;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.agent-meta-info {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.meta-tag {
   font-size: 12px;
   color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meta-tag i {
+  font-size: 13px;
 }
 
 .chat-layout {
@@ -1057,6 +1161,22 @@ export default {
   font-family: monospace;
   white-space: pre-wrap;
   margin: 8px 0;
+}
+
+/* 消息区块标题样式 */
+.message-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #409eff;
+  margin: 12px 0 8px 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #409eff;
+  display: inline-block;
+}
+
+.ai-message .message-bubble .message-section-title {
+  color: #409eff;
+  border-bottom-color: #409eff;
 }
 
 .no-conversation-area {

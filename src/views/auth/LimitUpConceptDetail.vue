@@ -62,6 +62,105 @@
             </template>
           </el-table-column>
           <el-table-column
+            prop="netAmount1d"
+            label="1日净流入"
+            min-width="120"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.netAmount1d)">
+                {{ formatAmount(scope.row.netAmount1d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="largeNetAmount1d"
+            label="1日大单净流入"
+            min-width="130"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.largeNetAmount1d)">
+                {{ formatAmount(scope.row.largeNetAmount1d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="superLargeNetAmount1d"
+            label="1日超大单净流入"
+            min-width="140"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.superLargeNetAmount1d)">
+                {{ formatAmount(scope.row.superLargeNetAmount1d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="netAmount3d"
+            label="3日净流入"
+            min-width="120"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.netAmount3d)">
+                {{ formatAmount(scope.row.netAmount3d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="largeNetAmount3d"
+            label="3日大单净流入"
+            min-width="130"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.largeNetAmount3d)">
+                {{ formatAmount(scope.row.largeNetAmount3d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="superLargeNetAmount3d"
+            label="3日超大单净流入"
+            min-width="140"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.superLargeNetAmount3d)">
+                {{ formatAmount(scope.row.superLargeNetAmount3d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="netAmount5d"
+            label="5日净流入"
+            min-width="120"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.netAmount5d)">
+                {{ formatAmount(scope.row.netAmount5d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="largeNetAmount5d"
+            label="5日大单净流入"
+            min-width="130"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.largeNetAmount5d)">
+                {{ formatAmount(scope.row.largeNetAmount5d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="superLargeNetAmount5d"
+            label="5日超大单净流入"
+            min-width="140"
+            align="right">
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.superLargeNetAmount5d)">
+                {{ formatAmount(scope.row.superLargeNetAmount5d) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="tradeDate"
             label="交易日期"
             min-width="120"
@@ -143,6 +242,25 @@ export default {
     formatDisplayDate(dateStr) {
       return new Date(dateStr).toLocaleDateString()
     },
+    formatAmount(value) {
+      if (value === null || value === undefined) return '-'
+      const num = Number(value)
+      if (isNaN(num)) return '-'
+      
+      // 转换为万元
+      const wan = num / 10000
+      
+      if (Math.abs(wan) >= 10000) {
+        // 大于1亿，显示为亿
+        return (wan / 10000).toFixed(2) + '亿'
+      } else if (Math.abs(wan) >= 1) {
+        // 大于1万，显示为万
+        return wan.toFixed(2) + '万'
+      } else {
+        // 小于1万，显示原值
+        return num.toFixed(2)
+      }
+    },
     async fetchData() {
       this.loading = true
       try {
@@ -160,6 +278,15 @@ export default {
             close: item.close,
             pctChg: item.pctChg,
             volume: item.volume,
+            netAmount1d: item.netAmount1d,
+            largeNetAmount1d: item.largeNetAmount1d,
+            superLargeNetAmount1d: item.superLargeNetAmount1d,
+            netAmount3d: item.netAmount3d,
+            largeNetAmount3d: item.largeNetAmount3d,
+            superLargeNetAmount3d: item.superLargeNetAmount3d,
+            netAmount5d: item.netAmount5d,
+            largeNetAmount5d: item.largeNetAmount5d,
+            superLargeNetAmount5d: item.superLargeNetAmount5d,
             tradeDate: item.tradeDate
           }))
         } else {
