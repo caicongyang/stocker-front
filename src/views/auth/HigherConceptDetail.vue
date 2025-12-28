@@ -19,24 +19,28 @@
           style="width: 100%"
           :loading="loading"
           height="calc(100vh - 200px)"
-          border>
+          border
+          :default-sort="{prop: 'gain', order: 'descending'}">
           <el-table-column
             prop="stockCode"
             label="股票代码"
             width="120"
-            fixed>
+            fixed
+            sortable>
           </el-table-column>
           <el-table-column
             prop="stockName"
             label="股票名称"
             width="140"
-            fixed>
+            fixed
+            sortable>
           </el-table-column>
           <el-table-column
             prop="close"
             label="收盘价"
             min-width="100"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               {{ formatPrice(scope.row.close) }}
             </template>
@@ -45,7 +49,8 @@
             prop="gain"
             label="当日涨幅"
             min-width="100"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.gain)">
                 {{ formatPercentage(scope.row.gain) }}
@@ -56,7 +61,8 @@
             prop="intervalDays"
             label="创新高间隔"
             min-width="120"
-            align="center">
+            align="center"
+            sortable>
             <template slot-scope="scope">
               <span class="interval-badge" :class="getIntervalClass(scope.row.intervalDays)">
                 {{ scope.row.intervalDays }}天
@@ -67,7 +73,8 @@
             prop="previousHighsDate"
             label="前期高点日期"
             min-width="120"
-            align="center">
+            align="center"
+            sortable>
             <template slot-scope="scope">
               {{ formatDate(scope.row.previousHighsDate) }}
             </template>
@@ -76,7 +83,8 @@
             prop="volume"
             label="成交量"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               {{ formatVolume(scope.row.volume) }}
             </template>
@@ -85,7 +93,8 @@
             prop="netAmount1d"
             label="1日净流入"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.netAmount1d)">
                 {{ formatAmount(scope.row.netAmount1d) }}
@@ -96,7 +105,8 @@
             prop="largeNetAmount1d"
             label="1日大单净流入"
             min-width="130"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.largeNetAmount1d)">
                 {{ formatAmount(scope.row.largeNetAmount1d) }}
@@ -107,7 +117,8 @@
             prop="superLargeNetAmount1d"
             label="1日超大单净流入"
             min-width="140"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.superLargeNetAmount1d)">
                 {{ formatAmount(scope.row.superLargeNetAmount1d) }}
@@ -118,7 +129,8 @@
             prop="netAmount3d"
             label="3日净流入"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.netAmount3d)">
                 {{ formatAmount(scope.row.netAmount3d) }}
@@ -129,7 +141,8 @@
             prop="largeNetAmount3d"
             label="3日大单净流入"
             min-width="130"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.largeNetAmount3d)">
                 {{ formatAmount(scope.row.largeNetAmount3d) }}
@@ -140,7 +153,8 @@
             prop="superLargeNetAmount3d"
             label="3日超大单净流入"
             min-width="140"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.superLargeNetAmount3d)">
                 {{ formatAmount(scope.row.superLargeNetAmount3d) }}
@@ -151,7 +165,8 @@
             prop="netAmount5d"
             label="5日净流入"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.netAmount5d)">
                 {{ formatAmount(scope.row.netAmount5d) }}
@@ -162,7 +177,8 @@
             prop="largeNetAmount5d"
             label="5日大单净流入"
             min-width="130"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.largeNetAmount5d)">
                 {{ formatAmount(scope.row.largeNetAmount5d) }}
@@ -173,7 +189,8 @@
             prop="superLargeNetAmount5d"
             label="5日超大单净流入"
             min-width="140"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.superLargeNetAmount5d)">
                 {{ formatAmount(scope.row.superLargeNetAmount5d) }}
@@ -184,7 +201,8 @@
             prop="tradeDate"
             label="交易日期"
             min-width="120"
-            align="center">
+            align="center"
+            sortable>
             <template slot-scope="scope">
               {{ formatDate(scope.row.tradeDate) }}
             </template>

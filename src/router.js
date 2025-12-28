@@ -30,6 +30,8 @@ import PlatformBreakthroughConcept from './views/auth/PlatformBreakthroughConcep
 import PlatformBreakthroughConceptDetail from './views/auth/PlatformBreakthroughConceptDetail.vue'
 import HigherConceptList from './views/auth/HigherConceptList.vue'
 import HigherConceptDetail from './views/auth/HigherConceptDetail.vue'
+import StockNetInflowList from './views/auth/StockNetInflowList.vue'
+import DataProcessing from './views/auth/DataProcessing.vue'
 import { requireAuth, requireGuest } from './utils/auth-guard'
 import store from './store'
 
@@ -191,6 +193,18 @@ const routes = [
     name: 'HigherConceptDetail',
     component: HigherConceptDetail,
     props: true,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/stock-net-inflow',
+    name: 'StockNetInflowList',
+    component: StockNetInflowList,
+    beforeEnter: requireAuth
+  },
+  {
+    path: '/data-processing',
+    name: 'DataProcessing',
+    component: DataProcessing,
     beforeEnter: requireAuth
   }
 ]

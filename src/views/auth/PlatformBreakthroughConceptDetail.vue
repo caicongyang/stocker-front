@@ -19,33 +19,50 @@
           style="width: 100%"
           :loading="loading"
           height="calc(100vh - 200px)"
-          border>
+          border
+          :default-sort="{prop: 'pctChg', order: 'descending'}">
           <el-table-column
             prop="stockCode"
             label="股票代码"
             width="120"
-            fixed>
+            fixed
+            sortable>
           </el-table-column>
           <el-table-column
             prop="stockName"
             label="股票名称"
             width="140"
-            fixed>
+            fixed
+            sortable>
           </el-table-column>
           <el-table-column
             prop="close"
             label="收盘价"
             min-width="100"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               ¥{{ formatPrice(scope.row.close) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="pctChg"
+            label="涨跌幅"
+            min-width="100"
+            align="right"
+            sortable>
+            <template slot-scope="scope">
+              <span :class="getColorClass(scope.row.pctChg)">
+                {{ formatPctChg(scope.row.pctChg) }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column
             prop="open"
             label="开盘价"
             min-width="100"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               ¥{{ formatPrice(scope.row.open) }}
             </template>
@@ -54,7 +71,8 @@
             prop="high"
             label="最高价"
             min-width="100"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               ¥{{ formatPrice(scope.row.high) }}
             </template>
@@ -63,7 +81,8 @@
             prop="low"
             label="最低价"
             min-width="100"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               ¥{{ formatPrice(scope.row.low) }}
             </template>
@@ -72,7 +91,8 @@
             prop="volumeIncreaseRatio"
             label="成交量增幅"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getVolumeColorClass(scope.row.volumeIncreaseRatio)">
                 {{ formatVolumeRatio(scope.row.volumeIncreaseRatio) }}
@@ -83,7 +103,8 @@
             prop="intervalDays"
             label="突破天数"
             min-width="100"
-            align="center">
+            align="center"
+            sortable>
             <template slot-scope="scope">
               {{ scope.row.intervalDays }}天
             </template>
@@ -92,7 +113,8 @@
             prop="netAmount1d"
             label="1日净流入"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.netAmount1d)">
                 {{ formatAmount(scope.row.netAmount1d) }}
@@ -103,7 +125,8 @@
             prop="largeNetAmount1d"
             label="1日大单净流入"
             min-width="130"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.largeNetAmount1d)">
                 {{ formatAmount(scope.row.largeNetAmount1d) }}
@@ -114,7 +137,8 @@
             prop="superLargeNetAmount1d"
             label="1日超大单净流入"
             min-width="140"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.superLargeNetAmount1d)">
                 {{ formatAmount(scope.row.superLargeNetAmount1d) }}
@@ -125,7 +149,8 @@
             prop="netAmount3d"
             label="3日净流入"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.netAmount3d)">
                 {{ formatAmount(scope.row.netAmount3d) }}
@@ -136,7 +161,8 @@
             prop="largeNetAmount3d"
             label="3日大单净流入"
             min-width="130"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.largeNetAmount3d)">
                 {{ formatAmount(scope.row.largeNetAmount3d) }}
@@ -147,7 +173,8 @@
             prop="superLargeNetAmount3d"
             label="3日超大单净流入"
             min-width="140"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.superLargeNetAmount3d)">
                 {{ formatAmount(scope.row.superLargeNetAmount3d) }}
@@ -158,7 +185,8 @@
             prop="netAmount5d"
             label="5日净流入"
             min-width="120"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.netAmount5d)">
                 {{ formatAmount(scope.row.netAmount5d) }}
@@ -169,7 +197,8 @@
             prop="largeNetAmount5d"
             label="5日大单净流入"
             min-width="130"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.largeNetAmount5d)">
                 {{ formatAmount(scope.row.largeNetAmount5d) }}
@@ -180,7 +209,8 @@
             prop="superLargeNetAmount5d"
             label="5日超大单净流入"
             min-width="140"
-            align="right">
+            align="right"
+            sortable>
             <template slot-scope="scope">
               <span :class="getColorClass(scope.row.superLargeNetAmount5d)">
                 {{ formatAmount(scope.row.superLargeNetAmount5d) }}
@@ -191,7 +221,8 @@
             prop="tradeDate"
             label="交易日期"
             min-width="120"
-            align="center">
+            align="center"
+            sortable>
             <template slot-scope="scope">
               {{ formatDate(scope.row.tradeDate) }}
             </template>
@@ -271,6 +302,7 @@ export default {
             stockCode: item.stockCode,
             stockName: item.stockName,
             close: Number(item.close),
+            pctChg: item.pctChg,
             open: Number(item.open),
             high: Number(item.high),
             low: Number(item.low),
@@ -332,6 +364,14 @@ export default {
       const num = Number(value)
       if (isNaN(num)) return '0.00'
       return num.toFixed(2)
+    },
+    
+    formatPctChg(value) {
+      if (value === null || value === undefined) return '-'
+      const num = Number(value)
+      if (isNaN(num)) return '-'
+      const sign = num > 0 ? '+' : ''
+      return sign + num.toFixed(2) + '%'
     },
     
     formatVolumeRatio(value) {

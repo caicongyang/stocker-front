@@ -23,6 +23,10 @@
         <i class="el-icon-s-finance"></i>
         <span>创新高概念</span>
       </el-menu-item>
+      <el-menu-item index="15">
+        <i class="el-icon-coin"></i>
+        <span>股票净流入</span>
+      </el-menu-item>
       <el-menu-item index="2">
         <i class="el-icon-star-off"></i>
         <span>自选股票</span>
@@ -66,6 +70,10 @@
       <el-menu-item index="13">
         <i class="el-icon-tickets"></i>
         <span>对话记录</span>
+      </el-menu-item>
+      <el-menu-item index="16">
+        <i class="el-icon-document-copy"></i>
+        <span>数据处理管理</span>
       </el-menu-item>
     </el-menu>
     
@@ -161,6 +169,12 @@ export default {
         case '/agent-chatbox':
           this.activeMenu = '14'
           break
+        case '/stock-net-inflow':
+          this.activeMenu = '15'
+          break
+        case '/data-processing':
+          this.activeMenu = '16'
+          break
       }
     },
     handleMenuSelect(index) {
@@ -178,6 +192,8 @@ export default {
                   index === '12' ? '/agent-management' :
                   index === '13' ? '/conversation-records' :
                   index === '14' ? '/agent-chatbox' :
+                  index === '15' ? '/stock-net-inflow' :
+                  index === '16' ? '/data-processing' :
                   null
                   
       if (path && this.$route.path !== path) {
