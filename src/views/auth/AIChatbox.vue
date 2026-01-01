@@ -203,9 +203,6 @@ export default {
         console.log('开始获取会话列表 - 只获取不选择');
         
         const response = await axios.get(`${config.aiApiBaseUrl}/conversations`, {
-          headers: {
-            'accept': 'application/json'
-          },
           timeout: 20000
         });
         
@@ -233,9 +230,6 @@ export default {
         console.log('开始获取会话列表 - API URL:', `${config.aiApiBaseUrl}/conversations`);
         
         const response = await axios.get(`${config.aiApiBaseUrl}/conversations`, {
-          headers: {
-            'accept': 'application/json'
-          },
           timeout: 20000
         });
         
@@ -294,9 +288,6 @@ export default {
         // 获取历史对话消息 - 使用messages接口
         console.log('正在获取会话历史:', `${config.aiApiBaseUrl}/conversations/${convId}/history`);
         const response = await axios.get(`${config.aiApiBaseUrl}/conversations/${convId}/history`, {
-          headers: {
-            'accept': 'application/json'
-          },
           // 设置超时时间，避免无限等待
           timeout: 20000
         });
@@ -441,7 +432,6 @@ export default {
       // 创建会话
       axios.post(`${config.aiApiBaseUrl}/conversations`, requestData, {
         headers: {
-          'accept': 'application/json',
           'Content-Type': 'application/json'
         },
         timeout: 20000
@@ -731,7 +721,6 @@ export default {
         
         const response = await axios.post(`${config.aiApiBaseUrl}/conversations`, requestData, {
           headers: {
-            'accept': 'application/json',
             'Content-Type': 'application/json'
           },
           timeout: 20000
@@ -805,9 +794,6 @@ export default {
         try {
           // 调用删除API
           const response = await axios.delete(`${config.aiApiBaseUrl}/conversations/${convId}`, {
-            headers: {
-              'accept': 'application/json'
-            },
             timeout: 20000
           });
           

@@ -231,11 +231,7 @@ export default {
     // 加载 Agent 列表
     async loadAgentList() {
       try {
-        const response = await axios.get(`${config.aiApiBaseUrl}/agents`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        });
+        const response = await axios.get(`${config.aiApiBaseUrl}/agents`);
         
         if (Array.isArray(response.data)) {
           this.agentList = response.data;
@@ -275,11 +271,7 @@ export default {
     // 加载Agent信息
     async loadAgentInfo() {
       try {
-        const response = await axios.get(`${config.aiApiBaseUrl}/agents/${this.agentId}`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        });
+        const response = await axios.get(`${config.aiApiBaseUrl}/agents/${this.agentId}`);
         
         if (response.data) {
           this.currentAgent = response.data;
@@ -297,9 +289,6 @@ export default {
         console.log('获取Agent会话列表:', this.agentId);
         
         const response = await axios.get(`${config.aiApiBaseUrl}/agents/${this.agentId}/conversations`, {
-          headers: {
-            'accept': 'application/json'
-          },
           timeout: 20000
         });
         
@@ -338,9 +327,6 @@ export default {
         // 使用Agent专用的历史记录接口
         console.log('获取Agent会话历史:', `${config.aiApiBaseUrl}/agents/${this.agentId}/conversations/${convId}/history`);
         const response = await axios.get(`${config.aiApiBaseUrl}/agents/${this.agentId}/conversations/${convId}/history`, {
-          headers: {
-            'accept': 'application/json'
-          },
           timeout: 20000
         });
         

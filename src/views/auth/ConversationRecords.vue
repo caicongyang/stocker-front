@@ -300,11 +300,7 @@ export default {
   methods: {
     async loadAgents() {
       try {
-        const response = await axios.get(`${config.aiApiBaseUrl}/agents`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        });
+        const response = await axios.get(`${config.aiApiBaseUrl}/agents`);
         this.agents = response.data || [];
       } catch (error) {
         console.error('加载Agent列表失败:', error);
@@ -314,16 +310,12 @@ export default {
     async loadConversations() {
       this.loading = true;
       try {
-        // 使用新的对话记录API，支持按agent_id过滤
+        // 使用新的对话记录API,支持按agent_id过滤
         let url = `${config.aiApiBaseUrl}/conversation-records/conversations`;
         if (this.selectedAgentFilter) {
           url += `?agent_id=${this.selectedAgentFilter}`;
         }
-        const response = await axios.get(url, {
-          headers: {
-            'accept': 'application/json'
-          }
-        });
+        const response = await axios.get(url);
         this.conversations = response.data || [];
       } catch (error) {
         console.error('加载对话列表失败:', error);
@@ -339,11 +331,7 @@ export default {
     
     async loadStatistics() {
       try {
-        const response = await axios.get(`${config.aiApiBaseUrl}/conversation-records/statistics`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        });
+        const response = await axios.get(`${config.aiApiBaseUrl}/conversation-records/statistics`);
         this.statistics = response.data;
       } catch (error) {
         console.error('加载统计信息失败:', error);
@@ -361,11 +349,7 @@ export default {
       this.activeTab = 'messages';
       
       try {
-        const response = await axios.get(`${config.aiApiBaseUrl}/conversation-records/${conversationId}/full-records`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        });
+        const response = await axios.get(`${config.aiApiBaseUrl}/conversation-records/${conversationId}/full-records`);
         this.conversationDetails = response.data;
       } catch (error) {
         console.error('加载对话详情失败:', error);

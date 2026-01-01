@@ -474,11 +474,7 @@ export default {
         console.log('发送请求到:', `${config.aiApiBaseUrl}/agents`)
         console.log('当前 axios 默认 headers:', axios.defaults.headers.common)
         
-        const response = await axios.get(`${config.aiApiBaseUrl}/agents`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        })
+        const response = await axios.get(`${config.aiApiBaseUrl}/agents`)
         
         if (Array.isArray(response.data)) {
           this.agentList = response.data
@@ -499,9 +495,6 @@ export default {
     async loadAvailableTools() {
       try {
         const response = await axios.get(`${config.aiApiBaseUrl}/api/tools/list`, {
-          headers: {
-            'accept': 'application/json'
-          },
           params: {
             enabled_only: true,
             page_size: 100
@@ -581,11 +574,7 @@ export default {
           type: 'warning'
         })
         
-        const response = await axios.delete(`${config.aiApiBaseUrl}/agents/${agent.id}`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        })
+        const response = await axios.delete(`${config.aiApiBaseUrl}/agents/${agent.id}`)
         
         if (response.data && response.data.success) {
           this.$message.success('删除成功')
@@ -623,14 +612,12 @@ export default {
             if (this.dialogType === 'create') {
               response = await axios.post(`${config.aiApiBaseUrl}/agents`, formData, {
                 headers: {
-                  'accept': 'application/json',
                   'Content-Type': 'application/json'
                 }
               })
             } else {
               response = await axios.put(`${config.aiApiBaseUrl}/agents/${this.agentForm.id}`, formData, {
                 headers: {
-                  'accept': 'application/json',
                   'Content-Type': 'application/json'
                 }
               })
@@ -674,11 +661,7 @@ export default {
       this.showConversationsDialog = true
       
       try {
-        const response = await axios.get(`${config.aiApiBaseUrl}/agents/${agent.id}/conversations`, {
-          headers: {
-            'accept': 'application/json'
-          }
-        })
+        const response = await axios.get(`${config.aiApiBaseUrl}/agents/${agent.id}/conversations`)
         
         if (Array.isArray(response.data)) {
           this.agentConversations = response.data
@@ -696,12 +679,7 @@ export default {
       try {
         const response = await axios.post(
           `${config.aiApiBaseUrl}/agents/${agent.id}/conversations`,
-          {},
-          {
-            headers: {
-              'accept': 'application/json'
-            }
-          }
+          {}
         )
         
         if (response.data && response.data.conversation_id) {
