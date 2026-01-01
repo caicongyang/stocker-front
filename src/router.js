@@ -231,13 +231,21 @@ router.beforeEach(async (to, from, next) => {
     return
   }
   
-  // 如果有token但没有用户信息，尝试获取用户信息
+  // 如果有token，设置到axios header（防止刷新后丢失）
+  if (token && !store.getters['auth/token']) {
+    store.commit('auth/SET_TOKEN', token)
+  }
+  
+  // 如果有token但没有用户信息，只在首次加载时获取用户信息
+  // 避免每次路由切换都验证token
   if (!store.getters['auth/user']) {
     try {
       await store.dispatch('auth/getCurrentUser')
       next()
     } catch (error) {
       // token无效，跳转到登录页
+      console.error('Token验证失败:', error)
+      store.commit('auth/CLEAR_AUTH')
       if (to.path !== '/login') {
         next('/login')
       } else {
@@ -245,6 +253,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
   } else {
+    // 已有用户信息，直接放行，不再每次验证token
     next()
   }
 })

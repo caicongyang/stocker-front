@@ -186,9 +186,14 @@ const actions = {
     } catch (error) {
       commit('SET_LOADING', false)
       
-      // 如果token无效，清除认证状态
+      // 如果token无效(401)，清除认证状态
+      // 但如果是网络错误(如timeout)，不清除token，保留用户登录状态
       if (error.response?.status === 401) {
+        console.warn('Token已过期或无效，清除认证状态')
         commit('CLEAR_AUTH')
+      } else {
+        // 网络错误或其他错误，不清除token，保留登录状态
+        console.warn('获取用户信息失败，但保留登录状态:', error.message)
       }
       
       const message = error.response?.data?.detail || '获取用户信息失败'
@@ -217,13 +222,21 @@ const actions = {
   },
   
   // 初始化认证状态
-  async initAuth({ commit, dispatch }) {
+  async initAuth({ commit, dispatch, state }) {
     const token = localStorage.getItem('auth_token')
     
     if (token) {
+      // 先设置token到state和axios header
       commit('SET_TOKEN', token)
-      // 验证token并获取用户信息
-      await dispatch('getCurrentUser')
+      
+      // 尝试获取用户信息验证token有效性
+      // 但不阻塞页面加载，失败也不立即清除token
+      try {
+        await dispatch('getCurrentUser')
+      } catch (error) {
+        console.warn('初始化时获取用户信息失败，但保留token:', error.message)
+        // 不清除token，让用户可以继续使用，只有在明确401时才清除
+      }
     }
   }
 }
