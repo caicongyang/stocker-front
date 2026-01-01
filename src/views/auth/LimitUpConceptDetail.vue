@@ -13,7 +13,8 @@
         </div>
       </div>
 
-      <div class="table-container">
+      <!-- 桌面端表格 -->
+      <div class="table-container hide-on-mobile">
         <el-table
           :data="stockList"
           style="width: 100%"
@@ -198,6 +199,88 @@
             </template>
           </el-table-column>
         </el-table>
+      </div>
+
+      <!-- 移动端卡片列表 -->
+      <div class="mobile-stock-list show-on-mobile">
+        <div v-if="loading" class="mobile-loading">
+          <i class="el-icon-loading"></i>
+          <p>加载中...</p>
+        </div>
+        <div v-else-if="stockList.length === 0" class="mobile-empty">
+          <i class="el-icon-document"></i>
+          <p>暂无数据</p>
+        </div>
+        <div v-else>
+          <div 
+            v-for="(stock, index) in stockList" 
+            :key="index" 
+            class="mobile-stock-card">
+            <div class="stock-card-header">
+              <div class="stock-basic-info">
+                <div class="stock-name">{{ stock.stockName }}</div>
+                <div class="stock-code">{{ stock.stockCode }}</div>
+              </div>
+              <div class="stock-price-info">
+                <div class="stock-price">¥{{ formatPrice(stock.close) }}</div>
+                <div :class="['stock-change', getColorClass(stock.pctChg)]">
+                  {{ formatPercentage(stock.pctChg) }}
+                </div>
+              </div>
+            </div>
+            <div class="stock-card-body">
+              <div class="stock-data-row">
+                <span class="label">成交量</span>
+                <span class="value">
+                  {{ formatVolume(stock.volume) }}
+                </span>
+              </div>
+              <div class="stock-data-row">
+                <span class="label">1日净流入</span>
+                <span :class="['value', getColorClass(stock.netAmount1d)]">
+                  {{ formatAmount(stock.netAmount1d) }}
+                </span>
+              </div>
+              <div class="stock-data-row">
+                <span class="label">1日大单净流入</span>
+                <span :class="['value', getColorClass(stock.largeNetAmount1d)]">
+                  {{ formatAmount(stock.largeNetAmount1d) }}
+                </span>
+              </div>
+              <div class="stock-data-row">
+                <span class="label">1日超大单净流入</span>
+                <span :class="['value', getColorClass(stock.superLargeNetAmount1d)]">
+                  {{ formatAmount(stock.superLargeNetAmount1d) }}
+                </span>
+              </div>
+              <div class="stock-data-row">
+                <span class="label">3日净流入</span>
+                <span :class="['value', getColorClass(stock.netAmount3d)]">
+                  {{ formatAmount(stock.netAmount3d) }}
+                </span>
+              </div>
+              <div class="stock-data-row">
+                <span class="label">5日净流入</span>
+                <span :class="['value', getColorClass(stock.netAmount5d)]">
+                  {{ formatAmount(stock.netAmount5d) }}
+                </span>
+              </div>
+              <div class="stock-data-row">
+                <span class="label">交易日期</span>
+                <span class="value">{{ formatDate(stock.tradeDate) }}</span>
+              </div>
+            </div>
+            <div class="stock-card-footer">
+              <el-button 
+                size="small" 
+                type="primary" 
+                @click="addToFavorite(stock)"
+                style="width: 100%;">
+                加入自选
+              </el-button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -455,5 +538,145 @@ export default {
 /* 调整表头样式 */
 :deep(.el-table__header-wrapper) {
   background-color: #f5f7fa;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .concept-detail {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+    overflow-y: auto;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .title-section h2 {
+    font-size: 20px;
+  }
+
+  .info-section {
+    align-items: flex-start;
+    margin-top: 12px;
+    width: 100%;
+  }
+
+  .table-container {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .mobile-stock-list {
+    display: block;
+  }
+
+  .mobile-stock-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .stock-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 12px;
+  }
+
+  .stock-basic-info {
+    flex: 1;
+  }
+
+  .stock-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 4px;
+  }
+
+  .stock-code {
+    font-size: 13px;
+    color: #909399;
+  }
+
+  .stock-price-info {
+    text-align: right;
+  }
+
+  .stock-price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 4px;
+  }
+
+  .stock-change {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .stock-card-body {
+    margin-bottom: 12px;
+  }
+
+  .stock-data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f7fa;
+  }
+
+  .stock-data-row:last-child {
+    border-bottom: none;
+  }
+
+  .stock-data-row .label {
+    color: #909399;
+    font-size: 13px;
+  }
+
+  .stock-data-row .value {
+    color: #303133;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .stock-card-footer {
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .mobile-loading,
+  .mobile-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #909399;
+  }
+
+  .mobile-loading i,
+  .mobile-empty i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .mobile-loading p,
+  .mobile-empty p {
+    font-size: 14px;
+    margin: 8px 0;
+  }
 }
 </style>

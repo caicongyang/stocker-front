@@ -1,11 +1,136 @@
 <template>
-  <div class="side-menu">
-    <div class="menu-header">
-      <div class="logo">
+  <div>
+    <!-- 移动端顶部导航栏 -->
+    <div class="mobile-top-bar show-on-mobile">
+      <el-button 
+        type="text" 
+        icon="el-icon-menu" 
+        @click="drawerVisible = true"
+        class="menu-toggle-btn">
+      </el-button>
+      <div class="mobile-logo">
         <i class="el-icon-data-analysis"></i>
-        <span class="logo-text">股票分析</span>
+        <span>股票分析</span>
+      </div>
+      <div class="mobile-user-avatar" @click="goToProfile" v-if="user">
+        <el-avatar :size="32" :src="user.avatar || defaultAvatar"></el-avatar>
       </div>
     </div>
+
+    <!-- 移动端抽屉菜单 -->
+    <el-drawer
+      :visible.sync="drawerVisible"
+      direction="ltr"
+      :with-header="false"
+      :size="280"
+      class="mobile-drawer">
+      <div class="side-menu mobile-menu">
+        <div class="menu-header">
+          <div class="logo">
+            <i class="el-icon-data-analysis"></i>
+            <span class="logo-text">股票分析</span>
+          </div>
+        </div>
+        <el-menu
+          :default-active="activeMenu"
+          class="menu-vertical"
+          @select="handleMenuSelect">
+          <el-menu-item index="1">
+            <i class="el-icon-s-data"></i>
+            <span>大盘看板</span>
+          </el-menu-item>
+          <el-menu-item index="10">
+            <i class="el-icon-s-marketing"></i>
+            <span>突破平台</span>
+          </el-menu-item>
+          <el-menu-item index="11">
+            <i class="el-icon-s-finance"></i>
+            <span>创新高概念</span>
+          </el-menu-item>
+          <el-menu-item index="15">
+            <i class="el-icon-coin"></i>
+            <span>股票净流入</span>
+          </el-menu-item>
+          <el-menu-item index="2">
+            <i class="el-icon-star-off"></i>
+            <span>自选股票</span>
+          </el-menu-item>
+          <el-menu-item index="3">
+            <i class="el-icon-document"></i>
+            <span>复盘日志</span>
+          </el-menu-item>
+          <el-menu-item index="4">
+            <i class="el-icon-bell"></i>
+            <span>预警设置</span>
+          </el-menu-item>
+          <el-menu-item index="5">
+            <i class="el-icon-notebook-1"></i>
+            <span>操盘手册</span>
+          </el-menu-item>
+          <el-menu-item index="6">
+            <i class="el-icon-chat-dot-square"></i>
+            <span>AI 助手</span>
+          </el-menu-item>
+          <el-menu-item index="14">
+            <i class="el-icon-chat-line-round"></i>
+            <span>Agent 对话</span>
+          </el-menu-item>
+          <el-menu-item index="7">
+            <i class="el-icon-money"></i>
+            <span>资金流水分析</span>
+          </el-menu-item>
+          <el-menu-item index="8">
+            <i class="el-icon-document-copy"></i>
+            <span>提示词管理</span>
+          </el-menu-item>
+          <el-menu-item index="9">
+            <i class="el-icon-setting"></i>
+            <span>工具管理</span>
+          </el-menu-item>
+          <el-menu-item index="12">
+            <i class="el-icon-user"></i>
+            <span>Agent 管理</span>
+          </el-menu-item>
+          <el-menu-item index="13">
+            <i class="el-icon-tickets"></i>
+            <span>对话记录</span>
+          </el-menu-item>
+          <el-menu-item index="16">
+            <i class="el-icon-document-copy"></i>
+            <span>数据处理管理</span>
+          </el-menu-item>
+        </el-menu>
+        
+        <div class="user-section">
+          <div class="user-info" @click="goToProfile" v-if="user">
+            <el-avatar :size="40" :src="user.avatar || defaultAvatar"></el-avatar>
+            <div class="user-details">
+              <span class="username">{{ user.name || user.email }}</span>
+              <span class="user-email">{{ user.email }}</span>
+            </div>
+          </div>
+          <div class="user-actions">
+            <el-button type="text" size="small" @click="goToProfile" v-if="user">
+              <i class="el-icon-user"></i>
+              个人中心
+            </el-button>
+            <el-button type="text" size="small" class="logout-button" @click="handleLogout">
+              <i class="el-icon-switch-button"></i>
+              退出登录
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </el-drawer>
+
+    <!-- 桌面端侧边栏 -->
+    <div class="side-menu desktop-menu hide-on-mobile">
+      <div class="menu-header">
+        <div class="logo">
+          <i class="el-icon-data-analysis"></i>
+          <span class="logo-text">股票分析</span>
+        </div>
+      </div>
     <el-menu
       :default-active="activeMenu"
       class="menu-vertical"
@@ -75,25 +200,26 @@
         <i class="el-icon-document-copy"></i>
         <span>数据处理管理</span>
       </el-menu-item>
-    </el-menu>
-    
-    <div class="user-section">
-      <div class="user-info" @click="goToProfile" v-if="user">
-        <el-avatar :size="40" :src="user.avatar || defaultAvatar"></el-avatar>
-        <div class="user-details">
-          <span class="username">{{ user.name || user.email }}</span>
-          <span class="user-email">{{ user.email }}</span>
+      </el-menu>
+      
+      <div class="user-section">
+        <div class="user-info" @click="goToProfile" v-if="user">
+          <el-avatar :size="40" :src="user.avatar || defaultAvatar"></el-avatar>
+          <div class="user-details">
+            <span class="username">{{ user.name || user.email }}</span>
+            <span class="user-email">{{ user.email }}</span>
+          </div>
         </div>
-      </div>
-      <div class="user-actions">
-        <el-button type="text" size="small" @click="goToProfile" v-if="user">
-          <i class="el-icon-user"></i>
-          个人中心
-        </el-button>
-        <el-button type="text" size="small" class="logout-button" @click="handleLogout">
-          <i class="el-icon-switch-button"></i>
-          退出登录
-        </el-button>
+        <div class="user-actions">
+          <el-button type="text" size="small" @click="goToProfile" v-if="user">
+            <i class="el-icon-user"></i>
+            个人中心
+          </el-button>
+          <el-button type="text" size="small" class="logout-button" @click="handleLogout">
+            <i class="el-icon-switch-button"></i>
+            退出登录
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
@@ -107,7 +233,8 @@ export default {
   data() {
     return {
       activeMenu: '1',
-      defaultAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+      defaultAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
+      drawerVisible: false
     }
   },
   computed: {
@@ -198,6 +325,8 @@ export default {
                   
       if (path && this.$route.path !== path) {
         this.$router.push(path)
+        // 移动端关闭抽屉
+        this.drawerVisible = false
       }
     },
     goToProfile() {
@@ -241,6 +370,58 @@ export default {
 </script>
 
 <style scoped>
+/* 移动端顶部导航栏 */
+.mobile-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 2000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.menu-toggle-btn {
+  color: white !important;
+  font-size: 24px;
+  padding: 8px;
+}
+
+.mobile-logo {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+  justify-content: center;
+}
+
+.mobile-logo i {
+  font-size: 24px;
+  margin-right: 8px;
+}
+
+.mobile-user-avatar {
+  cursor: pointer;
+}
+
+/* 移动端抽屉样式 */
+.mobile-drawer :deep(.el-drawer) {
+  background: transparent;
+}
+
+.mobile-menu {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* 桌面端侧边栏 */
 .side-menu {
   width: 240px;
   height: 100%;
@@ -358,5 +539,40 @@ export default {
 .user-actions .el-button i {
   margin-right: 6px;
   font-size: 14px;
+}
+
+/* 移动端样式适配 */
+@media screen and (max-width: 768px) {
+  .desktop-menu {
+    display: none !important;
+  }
+
+  .mobile-top-bar {
+    display: flex !important;
+  }
+
+  .side-menu.mobile-menu {
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .side-menu.mobile-menu .menu-vertical {
+    overflow-y: auto;
+  }
+
+  .side-menu.mobile-menu .user-section {
+    margin-top: auto;
+  }
+}
+
+/* 桌面端隐藏移动端元素 */
+@media screen and (min-width: 769px) {
+  .mobile-top-bar {
+    display: none !important;
+  }
+
+  .desktop-menu {
+    display: flex !important;
+  }
 }
 </style>

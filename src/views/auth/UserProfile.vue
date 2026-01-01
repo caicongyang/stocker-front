@@ -90,4 +90,28 @@ export default {
   max-width: 500px;
   margin: 0 auto;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .user-profile {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .profile-container {
+    padding: 16px;
+    max-width: 100%;
+  }
+
+  .profile-header {
+    padding: 16px;
+  }
+
+  .profile-body {
+    padding: 16px;
+  }
+}
 </style>

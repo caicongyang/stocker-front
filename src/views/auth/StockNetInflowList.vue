@@ -473,5 +473,39 @@ export default {
     min-width: 200px;
   }
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .stock-net-inflow-list {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .date-picker {
+    width: 100%;
+  }
+
+  .date-picker :deep(.el-date-picker) {
+    width: 100%;
+  }
+
+  .table-container {
+    padding: 0;
+  }
+}
 </style>
 

@@ -85,4 +85,32 @@ export default {
   background: white;
   border-radius: 8px;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .payment {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .payment-container {
+    padding: 16px 12px;
+  }
+
+  .payment-header {
+    padding: 16px;
+  }
+
+  .payment-header h2 {
+    font-size: 20px;
+  }
+
+  .plans-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
 </style>

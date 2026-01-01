@@ -310,6 +310,19 @@ export default {
   overflow-y: auto;
 }
 
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -356,7 +369,37 @@ export default {
   min-width: 0;
 }
 
-@media (max-width: 1200px) {
+@media screen and (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0;
+  }
+
+  .market-heat-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .date-picker {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .date-picker :deep(.el-date-editor) {
+    width: 100%;
+  }
+
+  .hot-stocks,
+  .volume-stocks,
+  .limit-up-stocks,
+  .abnormal-etfs,
+  .etf-ranking {
+    grid-column: 1 / -1;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -376,6 +419,32 @@ export default {
   right: 20px;
   bottom: 50px;
   z-index: 99;
+}
+
+@media screen and (max-width: 768px) {
+  .donation-container {
+    right: 12px;
+    bottom: 20px;
+  }
+
+  .donation-button {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .donation-button i {
+    font-size: 20px !important;
+  }
+
+  .donation-box {
+    width: 220px !important;
+    bottom: 54px !important;
+  }
+
+  .donation-qr img {
+    width: 160px !important;
+    height: 160px !important;
+  }
 }
 
 .donation-button {

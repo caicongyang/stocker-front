@@ -532,4 +532,30 @@ export default {
   padding: 5px 10px;
   font-size: 12px;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .concept-detail {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .table-container {
+    padding: 0;
+  }
+}
 </style>

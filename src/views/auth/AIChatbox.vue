@@ -878,6 +878,18 @@ export default {
   flex-direction: column;
 }
 
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .ai-chatbox {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+    height: calc(100vh - 68px);
+  }
+}
+
 .chat-container {
   background-color: white;
   border-radius: 8px;
@@ -902,10 +914,40 @@ export default {
   color: #303133;
 }
 
+@media screen and (max-width: 768px) {
+  .chat-header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  .chat-header h2 {
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .header-actions .el-button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
 .chat-layout {
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+@media screen and (max-width: 768px) {
+  .chat-layout {
+    flex-direction: column;
+  }
 }
 
 .chat-history-list {
@@ -914,6 +956,17 @@ export default {
   display: flex;
   flex-direction: column;
   background-color: #f9f9f9;
+}
+
+@media screen and (max-width: 768px) {
+  .chat-history-list {
+    width: 100%;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ebeef5;
+    max-height: 150px;
+    overflow-y: auto;
+  }
 }
 
 .history-header {
@@ -1064,6 +1117,12 @@ export default {
   max-width: 70%;
 }
 
+@media screen and (max-width: 768px) {
+  .message-content {
+    max-width: 85%;
+  }
+}
+
 .message-bubble {
   padding: 12px 16px;
   border-radius: 8px;
@@ -1094,6 +1153,24 @@ export default {
 .chat-input {
   padding: 15px 20px;
   border-top: 1px solid #ebeef5;
+}
+
+@media screen and (max-width: 768px) {
+  .chat-input {
+    padding: 12px;
+  }
+
+  .chat-input :deep(.el-textarea__inner) {
+    font-size: 14px;
+  }
+
+  .input-actions {
+    flex-wrap: wrap;
+  }
+
+  .input-tip {
+    font-size: 11px;
+  }
 }
 
 .input-actions {
@@ -1210,5 +1287,23 @@ export default {
   margin-top: 20px;
   border: 1px solid #409EFF;
   border-radius: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  .welcome-container {
+    padding: 24px 16px;
+  }
+
+  .welcome-icon {
+    font-size: 48px !important;
+  }
+
+  .welcome-container h3 {
+    font-size: 16px;
+  }
+
+  .welcome-container p {
+    font-size: 13px;
+  }
 }
 </style> 

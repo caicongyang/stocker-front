@@ -317,4 +317,20 @@ h3 {
     order: -1;
   }
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .favorite-stocks {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .stocks-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
 </style>

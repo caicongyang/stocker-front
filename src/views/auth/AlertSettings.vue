@@ -326,4 +326,56 @@ export default {
 .delete-button:hover {
   color: #ff4949;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .alert-settings {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+    overflow-y: auto;
+  }
+
+  .alert-channels,
+  .alert-rules {
+    padding: 16px 12px;
+  }
+
+  .channel-header,
+  .rules-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .channel-header h3,
+  .rules-header h3 {
+    font-size: 18px;
+  }
+
+  .channel-header .el-button,
+  .rules-header .el-button {
+    width: 100%;
+  }
+
+  /* 表格在移动端隐藏，使用卡片布局 */
+  .el-table {
+    display: none;
+  }
+
+  /* 添加移动端卡片样式 */
+  .mobile-card-list {
+    display: block;
+  }
+
+  .mobile-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
 </style>

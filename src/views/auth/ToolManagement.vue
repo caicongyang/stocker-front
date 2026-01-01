@@ -1084,4 +1084,31 @@ input:checked + .slider:before {
     margin-left: 0;
   }
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .tool-management {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
 </style>

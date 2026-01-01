@@ -1,0 +1,387 @@
+/* 移动端适配全局样式 */
+
+/* 响应式断点定义 */
+:root {
+  --mobile-breakpoint: 768px;
+  --tablet-breakpoint: 1024px;
+  --sidebar-width: 240px;
+  --mobile-header-height: 56px;
+}
+
+/* 移动端基础样式重置 */
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 14px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 禁用移动端长按菜单 */
+  * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 允许输入框和文本区域选择文本 */
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* 移动端滚动优化 */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 全局容器适配 */
+  #app {
+    width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+/* 移动端通用布局类 */
+.mobile-container {
+  padding: 12px;
+}
+
+.mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--mobile-header-height);
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.mobile-content {
+  padding-top: var(--mobile-header-height);
+  min-height: 100vh;
+}
+
+/* 移动端卡片样式 */
+@media screen and (max-width: 768px) {
+  .mobile-card {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 12px;
+  }
+
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ebeef5;
+  }
+
+  .mobile-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+  }
+
+  .mobile-card-body {
+    font-size: 14px;
+  }
+}
+
+/* 移动端表格适配 */
+@media screen and (max-width: 768px) {
+  .mobile-table-card {
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .mobile-table-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .mobile-table-row:last-child {
+    border-bottom: none;
+  }
+
+  .mobile-table-label {
+    color: #909399;
+    font-size: 13px;
+    flex-shrink: 0;
+    width: 100px;
+  }
+
+  .mobile-table-value {
+    color: #303133;
+    font-size: 14px;
+    text-align: right;
+    flex: 1;
+    font-weight: 500;
+  }
+}
+
+/* Element UI 组件移动端适配 */
+@media screen and (max-width: 768px) {
+  /* 按钮适配 */
+  .el-button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .el-button--mini {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .el-button--small {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  /* 输入框适配 */
+  .el-input__inner {
+    height: 40px;
+    line-height: 40px;
+    font-size: 14px;
+  }
+
+  .el-textarea__inner {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  /* 表格适配 - 隐藏原生表格，使用卡片布局 */
+  .el-table.mobile-hidden {
+    display: none;
+  }
+
+  /* 对话框适配 */
+  .el-dialog {
+    width: 90% !important;
+    margin-top: 5vh !important;
+  }
+
+  .el-dialog__header {
+    padding: 15px;
+  }
+
+  .el-dialog__body {
+    padding: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  /* 消息提示适配 */
+  .el-message {
+    min-width: 300px;
+    max-width: 90%;
+  }
+
+  /* 日期选择器适配 */
+  .el-date-editor {
+    width: 100% !important;
+  }
+
+  /* 下拉菜单适配 */
+  .el-select {
+    width: 100%;
+  }
+
+  /* 分页适配 */
+  .el-pagination {
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  .el-pagination.is-background .el-pager li {
+    min-width: 28px;
+    height: 28px;
+    line-height: 28px;
+    font-size: 13px;
+  }
+
+  /* 标签页适配 */
+  .el-tabs__item {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+  /* 表单适配 */
+  .el-form-item__label {
+    font-size: 14px;
+    line-height: 32px;
+  }
+
+  .el-form-item {
+    margin-bottom: 18px;
+  }
+}
+
+/* 移动端工具类 */
+@media screen and (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-on-mobile {
+    display: block !important;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  .mobile-text-center {
+    text-align: center !important;
+  }
+
+  .mobile-padding {
+    padding: 12px !important;
+  }
+
+  .mobile-margin {
+    margin: 12px !important;
+  }
+
+  .mobile-no-padding {
+    padding: 0 !important;
+  }
+
+  .mobile-no-margin {
+    margin: 0 !important;
+  }
+}
+
+/* 平板适配 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .tablet-full-width {
+    width: 100% !important;
+  }
+}
+
+/* 桌面端隐藏移动端专用元素 */
+@media screen and (min-width: 769px) {
+  .show-on-mobile {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* 通用响应式网格 */
+.responsive-grid {
+  display: grid;
+  gap: 20px;
+}
+
+@media screen and (max-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (min-width: 1025px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 移动端涨跌颜色 */
+.up {
+  color: #f56c6c !important;
+}
+
+.down {
+  color: #67c23a !important;
+}
+
+/* 移动端加载动画 */
+@media screen and (max-width: 768px) {
+  .mobile-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+  }
+}
+
+/* 移动端空状态 */
+@media screen and (max-width: 768px) {
+  .mobile-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #909399;
+  }
+
+  .mobile-empty i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .mobile-empty p {
+    font-size: 14px;
+    margin: 8px 0;
+  }
+}
+
+/* 移动端固定底部按钮 */
+@media screen and (max-width: 768px) {
+  .mobile-fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 12px 16px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+  }
+
+  .mobile-fixed-bottom .el-button {
+    width: 100%;
+  }
+}
+
+/* 移动端安全区域适配（刘海屏等） */
+@supports (padding: max(0px)) {
+  @media screen and (max-width: 768px) {
+    .mobile-header {
+      padding-top: max(0px, env(safe-area-inset-top));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+
+    .mobile-fixed-bottom {
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+  }
+}
+

@@ -387,4 +387,31 @@ export default {
   display: flex;
   align-items: center;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .trading-manual {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .manual-container {
+    padding: 16px 12px;
+  }
+
+  .manual-header {
+    padding: 16px;
+  }
+
+  .manual-header h2 {
+    font-size: 20px;
+  }
+
+  .manual-body {
+    padding: 16px;
+  }
+}
 </style>

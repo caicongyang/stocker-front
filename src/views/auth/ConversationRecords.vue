@@ -600,5 +600,33 @@ export default {
 ::v-deep .el-tabs--border-card {
   box-shadow: none;
 }
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .conversation-records {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 68px 12px 12px 12px;
+  }
+
+  .header {
+    padding: 16px;
+  }
+
+  .header h2 {
+    font-size: 20px;
+  }
+
+  .records-container {
+    padding: 12px;
+  }
+
+  :deep(.el-tabs__item) {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+}
 </style>
 
