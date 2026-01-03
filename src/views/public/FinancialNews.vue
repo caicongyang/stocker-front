@@ -122,12 +122,16 @@
       </div>
 
       <div class="tab-content">
-        <!-- Market Reports -->
-        <div v-show="activeTab === 'market'" class="report-grid">
-          <div v-for="(report, index) in marketReports" :key="'market-'+index" class="report-card">
+        <!-- Stock Reports -->
+        <div v-show="activeTab === 'stocks'" class="report-grid">
+          <div v-for="(report, index) in stockReports" :key="'stock-'+index" class="report-card">
             <div class="card-header">
               <h3>{{ report.title }}</h3>
               <span class="badge badge-date">{{ report.date }}</span>
+            </div>
+            <div class="stock-info">
+              <span class="stock-code">{{ report.stockCode }}</span>
+              <span class="stock-name">{{ report.stockName }}</span>
             </div>
             <div class="tags-list" v-if="report.tags && report.tags.length">
               <span v-for="(tag, idx) in report.tags" :key="idx" class="tag">{{ tag }}</span>
@@ -140,16 +144,12 @@
           </div>
         </div>
 
-        <!-- Stock Reports -->
-        <div v-show="activeTab === 'stocks'" class="report-grid">
-          <div v-for="(report, index) in stockReports" :key="'stock-'+index" class="report-card">
+        <!-- Market Reports -->
+        <div v-show="activeTab === 'market'" class="report-grid">
+          <div v-for="(report, index) in marketReports" :key="'market-'+index" class="report-card">
             <div class="card-header">
               <h3>{{ report.title }}</h3>
               <span class="badge badge-date">{{ report.date }}</span>
-            </div>
-            <div class="stock-info">
-              <span class="stock-code">{{ report.stockCode }}</span>
-              <span class="stock-name">{{ report.stockName }}</span>
             </div>
             <div class="tags-list" v-if="report.tags && report.tags.length">
               <span v-for="(tag, idx) in report.tags" :key="idx" class="tag">{{ tag }}</span>
@@ -222,7 +222,7 @@ export default {
   name: 'FinancialNews',
   data() {
     return {
-      activeTab: 'market',
+      activeTab: 'stocks',
       searchText: '',
       showDonation: false,
       marketReports: [],
@@ -234,8 +234,8 @@ export default {
       searchResults: [],
       showSearchResults: false,
       tabs: [
-        { name: 'market', label: 'AI大盘解析' },
         { name: 'stocks', label: 'AI个股资金流向' },
+        { name: 'market', label: 'AI大盘解析' },
         { name: 'financial', label: 'AI财报' }
       ]
     }
