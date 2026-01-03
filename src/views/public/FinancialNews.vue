@@ -2,171 +2,188 @@
   <div class="financial-news-container">
     <!-- Header with logo, search and login button -->
     <header class="header">
-      <div class="logo">
-        <i class="el-icon-data-analysis"></i>
-        <h1>金融 AI Agent</h1>
-      </div>
-      <div class="search-container">
-        <el-input
-          placeholder="搜索股票代码、名称或概念"
-          prefix-icon="el-icon-search"
-          v-model="searchText"
-          class="search-input"
-          @keyup.enter.native="handleSearch">
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
-        </el-input>
-      </div>
-      <div class="login-button">
-        <el-button type="primary" icon="el-icon-user" @click="goToLogin">登录</el-button>
+      <div class="header-content">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
+            <path d="M8 20L12 12L16 16L20 8L24 14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                <stop offset="0%" stop-color="#007AFF"/>
+                <stop offset="100%" stop-color="#5856D6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <h1>金融 AI</h1>
+        </div>
+        <div class="search-container">
+          <div class="search-wrapper">
+            <i class="el-icon-search search-icon"></i>
+            <input
+              type="text"
+              placeholder="搜索股票、概念或分析报告"
+              v-model="searchText"
+              class="search-input"
+              @keyup.enter="handleSearch">
+          </div>
+        </div>
+        <div class="login-button">
+          <button class="btn-login" @click="goToLogin">
+            <span>登录</span>
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- Hero section -->
     <div class="hero-section">
       <div class="hero-content">
-        <h2>AI时代 最专业的证券市场解析</h2>
-        <p>每天更新AI大盘分析、涨停个股资金流向分析、最近港美股财报解析;</p>
-        <p>如果没有搜索到您想要的个股，右上角登录，付费解析个股资金流向情况;</p>
-
+        <h2 class="hero-title">专业的AI证券市场解析</h2>
+        <p class="hero-subtitle">每日更新大盘分析、个股资金流向、港美股财报解读</p>
+        <p class="hero-description">精准洞察市场动态，助力投资决策</p>
       </div>
     </div>
 
     <!-- Loading and error states -->
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="6" animated />
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+      </div>
     </div>
     
     <div v-else-if="error" class="error-container">
-      <el-alert
-        :title="error"
-        type="error"
-        show-icon
-        :closable="false">
-      </el-alert>
+      <div class="error-card">
+        <i class="el-icon-warning"></i>
+        <p>{{ error }}</p>
+      </div>
     </div>
     
     <!-- Search results section -->
     <div v-if="showSearchResults" class="search-results-container">
       <div class="search-results-header">
-        <h2>
-          <span>搜索结果</span>
-          <el-button type="text" icon="el-icon-close" @click="closeSearchResults"></el-button>
-        </h2>
-        <p v-if="searchResults.length">找到 {{ searchResults.length }} 条相关报告</p>
-        <p v-else-if="!isSearching">未找到与 "{{ searchText }}" 相关的内容</p>
+        <div class="results-title-row">
+          <h2>搜索结果</h2>
+          <button class="btn-close" @click="closeSearchResults">
+            <i class="el-icon-close"></i>
+          </button>
+        </div>
+        <p v-if="searchResults.length" class="results-count">找到 {{ searchResults.length }} 条相关报告</p>
+        <p v-else-if="!isSearching" class="no-results">未找到与 "{{ searchText }}" 相关的内容</p>
       </div>
       
       <div v-if="isSearching" class="loading-container">
-        <el-skeleton :rows="3" animated />
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+        </div>
       </div>
       
       <div v-else-if="searchResults.length" class="search-results-list">
-        <el-card v-for="(report, index) in searchResults" :key="'search-'+index" class="search-result-card" shadow="hover">
-          <div class="report-header">
+        <div v-for="(report, index) in searchResults" :key="'search-'+index" class="report-card search-result-card">
+          <div class="card-header">
             <h3>{{ report.title }}</h3>
-            <div class="report-meta">
-              <el-tag size="small" type="info">{{ report.type }}</el-tag>
-              <el-tag size="small" type="primary">{{ report.date }}</el-tag>
+            <div class="meta-badges">
+              <span class="badge badge-type">{{ report.type }}</span>
+              <span class="badge badge-date">{{ report.date }}</span>
             </div>
           </div>
           
           <div v-if="report.stockCode !== '未知'" class="stock-info">
-            <el-tag type="info">{{ report.stockCode }}</el-tag>
-            <strong>{{ report.stockName }}</strong>
+            <span class="stock-code">{{ report.stockCode }}</span>
+            <span class="stock-name">{{ report.stockName }}</span>
           </div>
           
-          <div class="tags-container" v-if="report.tags && report.tags.length">
-            <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
+          <div class="tags-list" v-if="report.tags && report.tags.length">
+            <span v-for="(tag, idx) in report.tags" :key="idx" class="tag">
               {{ tag }}
-            </el-tag>
+            </span>
           </div>
           
-          <div class="report-content">
-            <p>{{ report.summary }}</p>
-          </div>
+          <p class="report-summary">{{ report.summary }}</p>
           
-          <div class="report-footer">
-            <el-button type="primary" plain size="small" @click="showReportDetail(report.reportId)">阅读完整报告</el-button>
-          </div>
-        </el-card>
+          <button class="btn-read-more" @click="showReportDetail(report.reportId)">
+            <span>阅读完整报告</span>
+            <i class="el-icon-arrow-right"></i>
+          </button>
+        </div>
       </div>
     </div>
     
     <!-- Tabs for report sections -->
     <div v-else-if="!loading && !error" class="tabs-container">
-      <el-tabs v-model="activeTab" type="card">
-        <el-tab-pane label="AI大盘解析" name="market">
-          <div class="report-grid">
-            <el-card v-for="(report, index) in marketReports" :key="'market-'+index" class="report-card" shadow="hover">
-              <div class="report-header">
-                <h3>{{ report.title }}</h3>
-                <el-tag size="small" type="primary">{{ report.date }}</el-tag>
-              </div>
-              <div class="tags-container" v-if="report.tags && report.tags.length">
-                <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
-                  {{ tag }}
-                </el-tag>
-              </div>
-              <div class="report-content">
-                <p>{{ report.summary }}</p>
-              </div>
-              <div class="report-footer">
-                <el-button type="primary" plain size="small" @click="showReportDetail(report.reportId)">阅读完整报告</el-button>
-              </div>
-            </el-card>
+      <div class="tabs-header">
+        <button 
+          v-for="tab in tabs" 
+          :key="tab.name"
+          :class="['tab-button', { active: activeTab === tab.name }]"
+          @click="activeTab = tab.name">
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <div class="tab-content">
+        <!-- Market Reports -->
+        <div v-show="activeTab === 'market'" class="report-grid">
+          <div v-for="(report, index) in marketReports" :key="'market-'+index" class="report-card">
+            <div class="card-header">
+              <h3>{{ report.title }}</h3>
+              <span class="badge badge-date">{{ report.date }}</span>
+            </div>
+            <div class="tags-list" v-if="report.tags && report.tags.length">
+              <span v-for="(tag, idx) in report.tags" :key="idx" class="tag">{{ tag }}</span>
+            </div>
+            <p class="report-summary">{{ report.summary }}</p>
+            <button class="btn-read-more" @click="showReportDetail(report.reportId)">
+              <span>阅读完整报告</span>
+              <i class="el-icon-arrow-right"></i>
+            </button>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="AI个股资金流向" name="stocks">
-          <div class="report-grid">
-            <el-card v-for="(report, index) in stockReports" :key="'stock-'+index" class="report-card" shadow="hover">
-              <div class="report-header">
-                <h3>{{ report.title }}</h3>
-                <el-tag size="small" type="success">{{ report.date }}</el-tag>
-              </div>
-              <div class="stock-info">
-                <el-tag type="info">{{ report.stockCode }}</el-tag>
-                <strong>{{ report.stockName }}</strong>
-              </div>
-              <div class="tags-container" v-if="report.tags && report.tags.length">
-                <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
-                  {{ tag }}
-                </el-tag>
-              </div>
-              <div class="report-content">
-                <p>{{ report.summary }}</p>
-              </div>
-              <div class="report-footer">
-                <el-button type="primary" plain size="small" @click="showReportDetail(report.reportId)">阅读完整报告</el-button>
-              </div>
-            </el-card>
+        </div>
+
+        <!-- Stock Reports -->
+        <div v-show="activeTab === 'stocks'" class="report-grid">
+          <div v-for="(report, index) in stockReports" :key="'stock-'+index" class="report-card">
+            <div class="card-header">
+              <h3>{{ report.title }}</h3>
+              <span class="badge badge-date">{{ report.date }}</span>
+            </div>
+            <div class="stock-info">
+              <span class="stock-code">{{ report.stockCode }}</span>
+              <span class="stock-name">{{ report.stockName }}</span>
+            </div>
+            <div class="tags-list" v-if="report.tags && report.tags.length">
+              <span v-for="(tag, idx) in report.tags" :key="idx" class="tag">{{ tag }}</span>
+            </div>
+            <p class="report-summary">{{ report.summary }}</p>
+            <button class="btn-read-more" @click="showReportDetail(report.reportId)">
+              <span>阅读完整报告</span>
+              <i class="el-icon-arrow-right"></i>
+            </button>
           </div>
-        </el-tab-pane>
-        <el-tab-pane label="AI财报" name="financial">
-          <div class="report-grid">
-            <el-card v-for="(report, index) in financialReports" :key="'financial-'+index" class="report-card" shadow="hover">
-              <div class="report-header">
-                <h3>{{ report.title }}</h3>
-                <el-tag size="small" type="warning">{{ report.date }}</el-tag>
-              </div>
-              <div class="stock-info">
-                <el-tag type="info">{{ report.stockCode }}</el-tag>
-                <strong>{{ report.stockName }}</strong>
-              </div>
-              <div class="tags-container" v-if="report.tags && report.tags.length">
-                <el-tag v-for="(tag, idx) in report.tags" :key="idx" size="mini" effect="plain" class="report-tag">
-                  {{ tag }}
-                </el-tag>
-              </div>
-              <div class="report-content">
-                <p>{{ report.summary }}</p>
-              </div>
-              <div class="report-footer">
-                <el-button type="primary" plain size="small" @click="showFinancialReportDetail(report.reportId)">查看完整财报</el-button>
-              </div>
-            </el-card>
+        </div>
+
+        <!-- Financial Reports -->
+        <div v-show="activeTab === 'financial'" class="report-grid">
+          <div v-for="(report, index) in financialReports" :key="'financial-'+index" class="report-card">
+            <div class="card-header">
+              <h3>{{ report.title }}</h3>
+              <span class="badge badge-date">{{ report.date }}</span>
+            </div>
+            <div class="stock-info">
+              <span class="stock-code">{{ report.stockCode }}</span>
+              <span class="stock-name">{{ report.stockName }}</span>
+            </div>
+            <div class="tags-list" v-if="report.tags && report.tags.length">
+              <span v-for="(tag, idx) in report.tags" :key="idx" class="tag">{{ tag }}</span>
+            </div>
+            <p class="report-summary">{{ report.summary }}</p>
+            <button class="btn-read-more" @click="showFinancialReportDetail(report.reportId)">
+              <span>查看完整财报</span>
+              <i class="el-icon-arrow-right"></i>
+            </button>
           </div>
-        </el-tab-pane>
-      </el-tabs>
+        </div>
+      </div>
     </div>
 
     <!-- Risk disclaimer -->
@@ -177,7 +194,9 @@
     <!-- Donation QR code -->
     <div class="donation-container" @mouseenter="showDonation = true" @mouseleave="showDonation = false">
       <div class="donation-button" :class="{ 'active': showDonation }">
-        <i class="el-icon-coffee-cup"></i>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z" fill="white"/>
+        </svg>
       </div>
       <div class="donation-box" :class="{ 'show': showDonation }">
         <div class="donation-header">
@@ -213,7 +232,12 @@ export default {
       error: null,
       isSearching: false,
       searchResults: [],
-      showSearchResults: false
+      showSearchResults: false,
+      tabs: [
+        { name: 'market', label: 'AI大盘解析' },
+        { name: 'stocks', label: 'AI个股资金流向' },
+        { name: 'financial', label: 'AI财报' }
+      ]
     }
   },
   created() {
@@ -476,305 +500,288 @@ export default {
 </script>
 
 <style scoped>
+/* Apple-inspired Design System */
+* {
+  box-sizing: border-box;
+}
+
 .financial-news-container {
   width: 100%;
   min-height: 100vh;
-  background-color: #f8fafc;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #fbfbfd;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   position: relative;
 }
 
+/* Header Styles */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 40px;
-  background-color: white;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
 }
 
 .logo {
   display: flex;
   align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
-.logo i {
-  font-size: 28px;
-  color: #409EFF;
-  margin-right: 10px;
+.logo:hover {
+  opacity: 0.7;
 }
 
 .logo h1 {
   margin: 0;
-  color: #303133;
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1d1d1f;
 }
 
+/* Search Styles */
 .search-container {
   flex: 1;
   max-width: 500px;
-  margin: 0 40px;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #86868b;
+  font-size: 18px;
+  pointer-events: none;
 }
 
 .search-input {
   width: 100%;
+  height: 40px;
+  padding: 0 16px 0 48px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f5f7;
+  font-size: 15px;
+  color: #1d1d1f;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hero-section {
-  height: 200px;
-  background: linear-gradient(135deg, #409EFF 0%, #36CCCB 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.search-input::placeholder {
+  color: #86868b;
+}
+
+.search-input:focus {
+  background: #e8e8ed;
+  box-shadow: 0 0 0 4px rgba(0, 125, 250, 0.1);
+}
+
+/* Button Styles */
+.btn-login {
+  height: 36px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 980px;
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
   color: white;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+.btn-login:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+  padding: 80px 24px;
   text-align: center;
-  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
 }
 
-.hero-content h2 {
-  font-size: 32px;
-  margin-bottom: 10px;
-  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)" /></svg>');
+  opacity: 0.5;
 }
 
-.hero-content p {
-  font-size: 18px;
-  opacity: 0.9;
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.loading-container,
+.hero-title {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: white;
+  margin: 0 0 16px 0;
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  font-size: 21px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.hero-description {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Loading Styles */
+.loading-container {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f5f5f7;
+  border-top-color: #007AFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+  color: #86868b;
+  font-size: 15px;
+}
+
+/* Error Styles */
 .error-container {
   max-width: 1200px;
-  margin: 20px auto;
-  padding: 20px;
+  margin: 60px auto;
+  padding: 0 24px;
 }
 
-.tabs-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px 40px;
-}
-
-.report-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 25px;
-  margin-top: 20px;
-}
-
-.report-card {
-  border-radius: 8px;
-  border: none;
-  overflow: hidden;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.report-header h3 {
-  margin: 0 0 5px 0;
-  font-size: 18px;
-  color: #303133;
-  font-weight: 600;
-}
-
-.stock-info {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  gap: 10px;
-}
-
-.stock-info strong {
-  color: #303133;
-}
-
-.tags-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
-.report-tag {
-  margin-right: 5px;
-}
-
-.report-content {
-  color: #606266;
-  margin-bottom: 20px;
-  line-height: 1.6;
-  flex-grow: 1;
-}
-
-.report-footer {
-  text-align: right;
-}
-
-/* Risk disclaimer styles */
-.risk-disclaimer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: rgba(253, 246, 236, 0.9);
+.error-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
   text-align: center;
-  padding: 8px 0;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  z-index: 98;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
 }
 
-.risk-disclaimer p {
-  margin: 0;
-  color: #e6a23c;
-  font-size: 14px;
-  font-weight: 500;
+.error-card i {
+  font-size: 48px;
+  color: #ff3b30;
+  margin-bottom: 16px;
 }
 
-/* Donation styles */
-.donation-container {
-  position: fixed;
-  right: 20px;
-  bottom: 50px;
-  z-index: 99;
-}
-
-.donation-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #409EFF;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.donation-button i {
-  font-size: 24px;
-  color: white;
-}
-
-.donation-button.active {
-  background-color: #67c23a;
-  transform: scale(0.9);
-}
-
-.donation-box {
-  position: absolute;
-  right: 0;
-  bottom: 60px;
-  width: 240px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  transform: translateY(20px);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.donation-box.show {
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-.donation-header {
-  padding: 15px;
-  text-align: center;
-  background-color: #f5f7fa;
-}
-
-.donation-header h3 {
-  margin: 0 0 5px 0;
-  font-size: 16px;
-  color: #303133;
-}
-
-.donation-header p {
-  margin: 0;
-  font-size: 12px;
-  color: #606266;
-}
-
-.donation-qr {
-  padding: 15px;
-  text-align: center;
-}
-
-.donation-qr img {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-}
-
-.donation-footer {
-  padding: 10px;
-  text-align: center;
-  background-color: #f5f7fa;
-  font-size: 12px;
-  color: #909399;
-}
-
-.donation-footer p {
+.error-card p {
+  color: #1d1d1f;
+  font-size: 17px;
   margin: 0;
 }
 
-/* Tab styles */
-.el-tabs__item {
-  font-size: 16px;
-  padding: 0 25px;
-  height: 50px;
-  line-height: 50px;
-}
-
-/* Responsive layout */
-@media (max-width: 1200px) {
-  .report-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
-}
-
-/* Search results styles */
+/* Search Results */
 .search-results-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 40px 24px 80px;
 }
 
 .search-results-header {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #ebeef5;
-  padding-bottom: 15px;
+  margin-bottom: 32px;
 }
 
-.search-results-header h2 {
+.results-title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  color: #303133;
+  margin-bottom: 12px;
 }
 
-.search-results-header p {
-  color: #909399;
+.results-title-row h2 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.btn-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close:hover {
+  background: #e8e8ed;
+}
+
+.results-count,
+.no-results {
+  color: #86868b;
+  font-size: 17px;
   margin: 0;
 }
 
@@ -784,68 +791,409 @@ export default {
   gap: 20px;
 }
 
-.search-result-card {
-  border-radius: 8px;
+/* Tabs */
+.tabs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 100px;
+}
+
+.tabs-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.tab-button {
+  padding: 12px 24px;
   border: none;
+  background: transparent;
+  color: #86868b;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab-button:hover {
+  color: #1d1d1f;
+}
+
+.tab-button.active {
+  color: #007AFF;
+  border-bottom-color: #007AFF;
+}
+
+/* Report Grid */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.report-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
   overflow: hidden;
 }
 
-.report-meta {
-  display: flex;
-  gap: 10px;
-  margin-top: 5px;
+.report-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #007AFF, #5856D6);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
+.report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.report-card:hover::before {
+  transform: scaleX(1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1d1d1f;
+  line-height: 1.3;
+}
+
+/* Badges */
+.badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-date {
+  background: #f5f5f7;
+  color: #86868b;
+}
+
+.badge-type {
+  background: #007AFF;
+  color: white;
+}
+
+.meta-badges {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* Stock Info */
+.stock-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stock-code {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #f5f5f7;
+  color: #007AFF;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+}
+
+.stock-name {
+  color: #1d1d1f;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Tags */
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 122, 255, 0.08);
+  color: #007AFF;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Report Summary */
+.report-summary {
+  color: #6e6e73;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  flex-grow: 1;
+}
+
+/* Read More Button */
+.btn-read-more {
+  width: 100%;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f5f7;
+  color: #007AFF;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-read-more:hover {
+  background: #e8e8ed;
+}
+
+.btn-read-more i {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.btn-read-more:hover i {
+  transform: translateX(3px);
+}
+
+/* Risk Disclaimer */
+.risk-disclaimer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 249, 240, 0.9);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  text-align: center;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 149, 0, 0.1);
+  z-index: 98;
+}
+
+.risk-disclaimer p {
+  margin: 0;
+  color: #ff9500;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Donation Styles */
+.donation-container {
+  position: fixed;
+  right: 24px;
+  bottom: 60px;
+  z-index: 99;
+}
+
+.donation-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donation-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+}
+
+.donation-button.active {
+  transform: scale(0.95);
+}
+
+.donation-box {
+  position: absolute;
+  right: 0;
+  bottom: 72px;
+  width: 280px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transform: translateY(16px) scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.donation-box.show {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.donation-header {
+  padding: 20px;
+  text-align: center;
+  background: #fbfbfd;
+}
+
+.donation-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 19px;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.01em;
+}
+
+.donation-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #86868b;
+  line-height: 1.4;
+}
+
+.donation-qr {
+  padding: 20px;
+  text-align: center;
+  background: white;
+}
+
+.donation-qr img {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.donation-footer {
+  padding: 16px;
+  text-align: center;
+  background: #fbfbfd;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.donation-footer p {
+  margin: 0;
+  font-size: 13px;
+  color: #86868b;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 15px 20px;
+  .header-content {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 16px;
+    gap: 12px;
   }
-  
+
+  .logo h1 {
+    font-size: 18px;
+  }
+
   .search-container {
+    order: 3;
     width: 100%;
     max-width: 100%;
-    margin: 10px 0;
   }
-  
-  .login-button {
-    align-self: flex-end;
+
+  .hero-title {
+    font-size: 36px;
   }
-  
-  .hero-section {
-    height: 220px;
+
+  .hero-subtitle {
+    font-size: 19px;
   }
-  
-  .hero-content h2 {
-    font-size: 28px;
+
+  .hero-description {
+    font-size: 15px;
   }
-  
-  .hero-content p {
-    font-size: 16px;
-  }
-  
+
   .report-grid {
     grid-template-columns: 1fr;
   }
-  
+
+  .tabs-header {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-button {
+    white-space: nowrap;
+  }
+
   .donation-button {
-    width: 45px;
-    height: 45px;
+    width: 48px;
+    height: 48px;
   }
-  
+
   .donation-box {
-    width: 220px;
+    width: 260px;
   }
-  
+
   .donation-qr img {
-    width: 160px;
-    height: 160px;
+    width: 180px;
+    height: 180px;
   }
-  
-  .risk-disclaimer p {
-    font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 60px 20px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 17px;
+  }
+
+  .results-title-row h2 {
+    font-size: 24px;
+  }
+
+  .card-header h3 {
+    font-size: 17px;
   }
 }
 </style> 
