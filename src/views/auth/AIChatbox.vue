@@ -72,10 +72,79 @@
                   <el-avatar :size="40" :src="message.role === 'user' ? userAvatar : aiAvatar"></el-avatar>
                 </div>
                 <div class="message-content">
-                  <div class="message-bubble">
-                    <p v-if="message.role === 'user'">{{ message.content }}</p>
-                    <div v-else v-html="formatMessage(message.content)"></div>
+                  <!-- 用户消息 -->
+                  <div v-if="message.role === 'user'" class="message-bubble">
+                    <p>{{ message.content }}</p>
                   </div>
+                  
+                  <!-- AI消息 - 支持 chat_parts 渲染 -->
+                  <div v-else>
+                    <!-- 如果有 chat_parts，渲染完整流程 -->
+                    <div v-if="message.chat_parts && message.chat_parts.length > 0" class="chat-parts-container">
+                      <div v-for="(part, partIndex) in message.chat_parts" :key="partIndex" class="chat-part">
+                        <!-- 意图检查 -->
+                        <div v-if="part.type === 'intent_check'" class="intent-check-part">
+                          <div :class="['part-badge', part.status === 'passed' ? 'badge-success' : 'badge-warning']">
+                            <i :class="part.status === 'passed' ? 'el-icon-success' : 'el-icon-warning'"></i>
+                            {{ part.status === 'passed' ? '意图检查通过' : '意图检查未通过' }}
+                          </div>
+                          <div v-if="part.message" class="part-message">{{ part.message }}</div>
+                        </div>
+                        
+                        <!-- 工具调用 -->
+                        <div v-else-if="part.type === 'tool_call'" class="tool-call-part">
+                          <div class="part-badge badge-info">
+                            <i class="el-icon-setting"></i>
+                            工具调用: {{ part.tool_name }}
+                          </div>
+                          <div v-if="part.tool_args && Object.keys(part.tool_args).length > 0" class="tool-args">
+                            <strong>参数:</strong>
+                            <pre>{{ JSON.stringify(part.tool_args, null, 2) }}</pre>
+                          </div>
+                          <div v-if="part.result_preview" class="tool-result">
+                            <strong>结果预览:</strong> {{ part.result_preview }}
+                          </div>
+                        </div>
+                        
+                        <!-- 自动摘要 -->
+                        <div v-else-if="part.type === 'auto_summary'" class="process-part">
+                          <div class="part-badge badge-primary">
+                            <i class="el-icon-document"></i>
+                            {{ part.message || '数据摘要处理' }}
+                          </div>
+                        </div>
+                        
+                        <!-- 满意度检查 -->
+                        <div v-else-if="part.type === 'satisfaction_check'" class="process-part">
+                          <div class="part-badge badge-primary">
+                            <i class="el-icon-check"></i>
+                            {{ part.message || '回复质量检查' }}
+                          </div>
+                        </div>
+                        
+                        <!-- 最终总结 -->
+                        <div v-else-if="part.type === 'final_summary'" class="process-part">
+                          <div class="part-badge badge-primary">
+                            <i class="el-icon-star-on"></i>
+                            {{ part.message || '生成最终总结' }}
+                          </div>
+                        </div>
+                        
+                        <!-- AI回复 -->
+                        <div v-else-if="part.type === 'ai_response'" class="ai-response-part">
+                          <div class="message-bubble">
+                            <div v-html="formatMessage(part.content)"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- 如果没有 chat_parts，使用原有的渲染方式 -->
+                    <div v-else class="message-bubble">
+                      <div v-html="formatMessage(message.content)"></div>
+                    </div>
+                  </div>
+                  
                   <div class="message-time">{{ formatTime(message.time) }}</div>
                 </div>
               </div>
@@ -287,8 +356,8 @@ export default {
       try {
         // 获取历史对话消息 - 使用messages接口
         console.log('正在获取会话历史:', `${config.aiApiBaseUrl}/conversations/${convId}/history`);
+        
         const response = await axios.get(`${config.aiApiBaseUrl}/conversations/${convId}/history`, {
-          // 设置超时时间，避免无限等待
           timeout: 20000
         });
         
@@ -333,11 +402,30 @@ export default {
                 timestamp = new Date(msg.timestamp);
               }
               
+              // 解析 chat_parts（如果是字符串则需要JSON.parse）
+              let chatParts = [];
+              if (msg.chat_parts) {
+                try {
+                  chatParts = typeof msg.chat_parts === 'string' 
+                    ? JSON.parse(msg.chat_parts) 
+                    : msg.chat_parts;
+                  
+                  // 调试日志
+                  if (chatParts.length > 0) {
+                    console.log(`📊 消息 ${role} 包含 ${chatParts.length} 个 chat_parts:`, chatParts);
+                  }
+                } catch (e) {
+                  console.error('解析 chat_parts 失败:', e, 'raw:', msg.chat_parts);
+                  chatParts = [];
+                }
+              }
+              
               this.messages.push({
                 role: role,
                 content: content,
                 time: timestamp,
-                timestamp: timestamp.getTime()
+                timestamp: timestamp.getTime(),
+                chat_parts: chatParts // 保存解析后的 chat_parts 用于渲染
               });
             });
           } else {
@@ -474,9 +562,11 @@ export default {
         const streamingMessageIndex = this.messages.length;
         this.addMessage('ai', '正在思考...');
         
-        // 存储工具调用信息
+        // 存储工具调用信息和 chat_parts
         let toolCalls = [];
+        let chatParts = []; // 新增：收集 chat_parts
         let finalContent = '';
+        let statusMessage = '正在思考...'; // 用于临时状态显示
         
         // 获取认证token
         const token = this.$store.getters['auth/token'] || localStorage.getItem('auth_token');
@@ -529,34 +619,61 @@ export default {
                     // 处理不同类型的事件
                     if (eventData.type === 'status') {
                       // 更新状态消息
-                      this.messages[streamingMessageIndex].content = `⏳ ${eventData.message}`;
+                      statusMessage = `⏳ ${eventData.message}`;
+                      this.messages[streamingMessageIndex].content = statusMessage;
+                      
+                      // 如果是意图检查通过的状态
+                      if (eventData.message && eventData.message.includes('意图检查通过')) {
+                        chatParts.push({
+                          type: 'intent_check',
+                          status: 'passed',
+                          message: '问题通过意图检查'
+                        });
+                        // 实时更新 chat_parts
+                        this.messages[streamingMessageIndex].chat_parts = [...chatParts];
+                      }
                     } else if (eventData.type === 'tool_call') {
                       // 记录工具调用
-                      toolCalls.push({
+                      const toolCall = {
                         name: eventData.tool_name,
                         args: eventData.tool_args
+                      };
+                      toolCalls.push(toolCall);
+                      
+                      // 添加到 chat_parts
+                      chatParts.push({
+                        type: 'tool_call',
+                        tool_name: eventData.tool_name,
+                        tool_args: eventData.tool_args,
+                        result_preview: eventData.result_preview || ''
                       });
-                      this.messages[streamingMessageIndex].content = `🛠️ ${eventData.message}`;
+                      
+                      // 实时更新显示和 chat_parts - 显示所有工具调用
+                      let toolsDisplay = '🛠️ 调用的工具:\n';
+                      toolCalls.forEach((tc, idx) => {
+                        toolsDisplay += `  ${idx + 1}. ${tc.name}\n`;
+                      });
+                      
+                      this.messages[streamingMessageIndex].content = toolsDisplay;
+                      this.messages[streamingMessageIndex].chat_parts = [...chatParts];
                     } else if (eventData.type === 'tool_summary') {
                       // 工具调用摘要
                       const toolsList = eventData.tools_used.join(', ');
-                      this.messages[streamingMessageIndex].content = `✅ 已调用工具: ${toolsList}`;
+                      statusMessage = `✅ 已调用工具: ${toolsList}`;
+                      this.messages[streamingMessageIndex].content = statusMessage;
                     } else if (eventData.type === 'message') {
                       // 最终消息
                       finalContent = eventData.content;
                       
-                      // 构建完整的消息内容，包含工具调用信息
-                      let fullContent = '';
-                      if (toolCalls.length > 0) {
-                        fullContent += '📊 **使用的工具:**\n';
-                        toolCalls.forEach((tc, idx) => {
-                          fullContent += `${idx + 1}. ${tc.name}\n`;
-                        });
-                        fullContent += '\n---\n\n';
-                      }
-                      fullContent += finalContent;
+                      // 添加AI回复到 chat_parts
+                      chatParts.push({
+                        type: 'ai_response',
+                        content: finalContent
+                      });
                       
-                      this.messages[streamingMessageIndex].content = fullContent;
+                      // 更新消息内容和 chat_parts
+                      this.messages[streamingMessageIndex].content = finalContent;
+                      this.messages[streamingMessageIndex].chat_parts = [...chatParts];
                     } else if (eventData.type === 'complete') {
                       // 处理完成
                       console.log('消息处理完成');
@@ -619,14 +736,15 @@ export default {
       this.addMessage('ai', errorMessage)
     },
     
-    addMessage(role, content) {
+    addMessage(role, content, chatParts = []) {
       const now = new Date();
       
       this.messages.push({
         role,
         content,
         time: now, // 存储完整日期对象
-        timestamp: now.getTime()
+        timestamp: now.getTime(),
+        chat_parts: chatParts // 支持传入 chat_parts
       });
       
       this.$nextTick(() => {
@@ -1290,6 +1408,153 @@ export default {
 
   .welcome-container p {
     font-size: 13px;
+  }
+}
+
+/* Chat Parts 样式 */
+.chat-parts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-part {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 徽章样式 */
+.part-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.badge-success {
+  background-color: #f0f9ff;
+  color: #67c23a;
+  border: 1px solid #b3e19d;
+}
+
+.badge-warning {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border: 1px solid #fbc4c4;
+}
+
+.badge-info {
+  background-color: #ecf5ff;
+  color: #409eff;
+  border: 1px solid #b3d8ff;
+}
+
+.badge-primary {
+  background-color: #f4f4f5;
+  color: #909399;
+  border: 1px solid #d3d4d6;
+}
+
+/* 意图检查样式 */
+.intent-check-part {
+  padding: 8px;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  border-left: 3px solid #67c23a;
+}
+
+.intent-check-part .part-message {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+/* 工具调用样式 */
+.tool-call-part {
+  padding: 10px;
+  background-color: #ecf5ff;
+  border-radius: 6px;
+  border-left: 3px solid #409eff;
+}
+
+.tool-args {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 8px;
+  background-color: #f5f7fa;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.tool-args pre {
+  margin: 4px 0 0 0;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.tool-result {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 8px;
+  padding: 6px 8px;
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+}
+
+/* 处理步骤样式 */
+.process-part {
+  padding: 6px 10px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  border-left: 3px solid #909399;
+}
+
+/* AI回复样式 */
+.ai-response-part {
+  margin-top: 4px;
+}
+
+.ai-response-part .message-bubble {
+  background-color: #EBEEF5;
+  color: #303133;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .chat-parts-container {
+    gap: 6px;
+  }
+  
+  .part-badge {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+  
+  .tool-args,
+  .tool-result {
+    font-size: 11px;
+  }
+  
+  .tool-args pre {
+    font-size: 10px;
   }
 }
 </style> 
